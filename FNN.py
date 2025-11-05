@@ -2,6 +2,7 @@ class FNN:
 
 
 
-    def __init__(self):
-        self.WeightArray = 1
+    def __init__(self,weights,activ_functions):
+        #
+        self.weights = weights
     
