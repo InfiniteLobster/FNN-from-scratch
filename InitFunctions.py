@@ -2,9 +2,9 @@ import numpy as np
 import random
 
 
-def randomIniVector(vector,lower_bound = 0.0,upper_bound = 1.0, datatype_weights = "float64"):
+def randomIniVector(vector,lower_bound = 0.0,upper_bound = 1.0):
     #
-    vector_init = vector.astype(dtype = datatype_weights)
+    vector_init = vector
     #
     len_vector = vector.size
     #
