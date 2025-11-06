@@ -7,7 +7,6 @@ class Neuron:
     def __init__(self,weights,activ_function, method_ini = "Zero", datatype_weights = "float64"):
         #
         type_weights = type(weights)
-        type_activ = type(activ_function)
         #weights assignment
         if (type_weights == int):#this is case when only weights values are not given by the user, only dimensions. In this case weights needs to be initialized
             #
