@@ -1,6 +1,5 @@
 import numpy as np
-import types
-
+from InitFunctions import  *
 
 class Neuron:
     
@@ -14,9 +13,9 @@ class Neuron:
             #
             weights_conversion = np.zeros([1,weights],dtype=datatype_weights)
             #weights are initialized based on selected method
-            match method_ini:#this is default version, not very usefull (TO DO: implementing methods)
-                case "Random":# TO DO
-                    raise NotImplementedError
+            match method_ini:#(TO DO: implementing methods)
+                case "Random":# 
+                    weights_conversion = randomIniVector(weights_conversion)
             #after initialization
             self.weight_vector = weights_conversion
         elif (type_weights == np.ndarray):
