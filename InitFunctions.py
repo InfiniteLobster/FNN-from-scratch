@@ -10,7 +10,7 @@ def randomIniVector(vector,lower_bound = 0.0,upper_bound = 1.0, datatype_weights
     #
     for index in range(len_vector):
         #
-        value_ran = random.random()
+        value_ran = random.uniform(lower_bound,upper_bound)
         #
         vector_init[0,index] = value_ran
     return vector_init
