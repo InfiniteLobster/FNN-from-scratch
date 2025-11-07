@@ -36,9 +36,12 @@ class Neuron:
                 if (np.issubdtype(weights.dtype, np.integer) & np.issubdtype(weights.dtype, np.floating)):# the check of dtypes is shortened by "cutting" the data type tree (from https://numpy.org/doc/stable/reference/arrays.scalars.html), so that only it is compare to highest appropariate (leaving only desired data types) node.
                     #object weights must be of default dtype or as specified by user. It is checked if that is the case, if not then weights dtype is converted
                     weights_dtype = insureDtypeNpArray(weights, datatype_weights)
-                    #TO DO: implement checkign if given array is row vector (if not then convert)
-                    #transformation are finished and results can be assigned as object property
-                    self.weight_vector = weights_vector_row
+                    #
+                    shape = weights_dtype.shape
+                    if(shape[0] == 1):
+                        self.weight_vector = weights_vector_row
+                    else:
+                        self.weight_vector = weights_vector_row.T
                 else:#if given weight vector has undesired dtype, then appropriate error should be given. TO DO: implementing proper error
                     raise NotImplementedError
             else:#if given NumPy array is not vector than it is unappropriate for use and appropriate error should be thrown. TO DO: implementing proper error
