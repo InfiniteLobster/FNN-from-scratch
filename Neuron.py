@@ -85,7 +85,9 @@ class Neuron:
         #input is multiplied by weights for forward pass (matrix multiplication)
         matrix_multi = weight_vector @ input_ready
         #the results of input "passing through" weights needs to be put through activation function
-        output = activ_function(matrix_multi.item())#as it is single value it returns just one value
+        activation_out = activ_function(matrix_multi.item())#as it is single value it returns just one value
+        #both matrix multiplication results (z) and activation results (a) are send out
+        output = [matrix_multi,activation_out]
         #results are returned
         return output
   
