@@ -67,13 +67,7 @@ class Neuron:
                     #the input needs to be represent as a 2D array with only one column(column vector) for matrix operations usage.
                     input_format = input[:,np.newaxis]
                 elif(number_dimensions == 2):
-                    #for proper representation the input, the input vector needs to be a column vector. It is checked if that's the case and changed if not.
-                    if(isRowVector(input)):
-                        input_format = input.T
-                    elif(isColVector(input)):
-                        input_format = input
-                    else:#if none of above true, then given variable is array and not vector. Appropriate error must be passed to user. TO DO: error implementation
-                        raise NotImplementedError
+                    input_format = getProperInputArray(input)
                 else:#if data is of dimensions that handling is not implement proper error should be thrown. TO DO: implement proper error
                     raise NotImplementedError 
                 #bias input is added to input vector
@@ -87,7 +81,7 @@ class Neuron:
             #input is multiplied by weights for forward pass (matrix multiplication)
             matrix_multi = weight_vector @ input_ready
             #the results of input "passing through" weights needs to be put through activation function
-            activation_out = activ_function(matrix_multi.item())#as it is single value it returns just one value
+            activation_out = activ_function(matrix_multi)
             #both matrix multiplication results (z) and activation results (a) are send out
             output = [matrix_multi,activation_out]
         else:#if inproper input was given and operation cannot proceed proper error should be raised. TO DO: implement proper error
