@@ -1,16 +1,18 @@
 import numpy as np
 import random
 
-
-def randomIniVector(vector,lower_bound = 0.0,upper_bound = 1.0):
+#
+def randomIni(array,lower_bound = 0.0,upper_bound = 1.0):
     #
-    vector_init = vector
+    array_init = array
     #
-    len_vector = vector.size
+    shape_array = array_init.shape
     #
-    for index in range(len_vector):
-        #
-        value_ran = random.uniform(lower_bound,upper_bound)
-        #
-        vector_init[0,index] = value_ran
-    return vector_init
+    for iRow in range(shape_array[0]):
+        for iCol in range(shape_array[1]):
+            #
+            value_ran = random.uniform(lower_bound,upper_bound)
+            #
+            array_init[iRow,iCol] = value_ran
+    #
+    return array_init
