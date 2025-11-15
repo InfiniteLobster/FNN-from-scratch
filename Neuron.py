@@ -19,11 +19,11 @@ class Neuron:
         #weights assignment
         if (type_weights == int):#this is case when weights values are not given by the user, only dimension(as it is for single neuron, e.g. one row of weights). In this case weights needs to be initialized. it is assumed that given value is without bias.
             #basic version (zero initialization) is always done as a base to ommit need to pass datatype information down to initialization methods
-            weights_conversion = np.zeros([1,(weights+1)],dtype=datatype_weights)#to represent neuron weight vector as one row of layer weight array, the weight vector is a 2D array with only one row(row vector).
+            weights_conversion = np.zeros([1,(weights+1)],dtype=datatype_weights)#to represent neuron weight vector as one row of layer weight array, the weight vector is a 2D array with only one row(row vector). Given number of weights is assumed to be without bias, so it is added for creation.
             #weights are initialized based on selected method
             match method_ini:#(TO DO: implementing methods)
                 case "Random":# in the random initialization the weights values are generated randomly as real numbers between given bounds
-                    weights_conversion = randomIniVector(weights_conversion,random_lower_bound,random_upper_bound)
+                    weights_conversion = randomIni(weights_conversion,random_lower_bound,random_upper_bound)
             #after initialization weight are assigned to object property
             self.weight_vector = weights_conversion
         elif (type_weights == np.ndarray):#this is the case when already initialized weights are passed for neuron object creation
