@@ -74,7 +74,7 @@ class Neuron:
                         input_format = input
                     else:#if none of above true, then given variable is array and not vector. Appropriate error must be passed to user. TO DO: error implementation
                         raise NotImplementedError
-                else:#if data is of dimensions that handling is not implement proper error should be thrown. TO DO: implenet proper error
+                else:#if data is of dimensions that handling is not implement proper error should be thrown. TO DO: implement proper error
                     raise NotImplementedError 
                 #bias input is added to input vector
                 input_ready = addBiasInput(input_format)
@@ -82,12 +82,16 @@ class Neuron:
                 raise NotImplementedError
         else:#if given data is not in proper format, the error should be thrown. TO DO: proper error.
             raise NotImplementedError
-        #input is multiplied by weights for forward pass (matrix multiplication)
-        matrix_multi = weight_vector @ input_ready
-        #the results of input "passing through" weights needs to be put through activation function
-        activation_out = activ_function(matrix_multi.item())#as it is single value it returns just one value
-        #both matrix multiplication results (z) and activation results (a) are send out
-        output = [matrix_multi,activation_out]
+        #before proceeding with input propagation through neuron it needs to be verified if input is compatible.
+        if(weight_vector.shape[1] == input_ready.shape[0]):#if they are compatible for matrix multiplication than operation can proceed
+            #input is multiplied by weights for forward pass (matrix multiplication)
+            matrix_multi = weight_vector @ input_ready
+            #the results of input "passing through" weights needs to be put through activation function
+            activation_out = activ_function(matrix_multi.item())#as it is single value it returns just one value
+            #both matrix multiplication results (z) and activation results (a) are send out
+            output = [matrix_multi,activation_out]
+        else:#if inproper input was given and operation cannot proceed proper error should be raised. TO DO: implement proper error
+            raise NotImplementedError
         #results are returned
         return output
   
