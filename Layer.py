@@ -16,10 +16,10 @@ class Layer:
             if(weights_dim == 1):#if vector is given then it is assumed that it is for weight assignment, they should be initialized
                 if(np.issubdtype(weights.dtype, np.integer)):#numbers in vector needs to be integers to represnt dimensions of layer and neurons in it
                     if(weights.size == 2):#as weights of single layer are represented by 2D array, then only two numbers for dimensions are needed. If there is less or more than ambiguity is created. To omit it, the initialization can proceed only with 2 numbers.
-                        nRow = weights[0]#first number is assumed to be for layer size (number of neurons in layer)
-                        nCol = weights[1]#second number is assumed to be for number of weights in neurons of layer (bias is not counted)
+                        nNeurons = weights[0]#first number is assumed to be for layer size (number of neurons in layer)
+                        nWeights = weights[1]#second number is assumed to be for number of weights in neurons of layer (bias is not counted)
                         #weights are initializaed by basic method
-                        weights_conversion = np.zeros([nRow,(nCol+1)],dtype=datatype_weights)
+                        weights_conversion = np.zeros([nNeurons,(nWeights+1)],dtype=datatype_weights)#1 is added to weights, because by convention given number does not include bias
                         #if method other than basic method (zero) was selected, than weights are initialized according to it
                         match method_ini:#(TO DO: implementing methods)
                             case "Random":# in the random initialization the weights values are generated randomly as real numbers between given bounds
