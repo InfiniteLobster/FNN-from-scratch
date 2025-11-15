@@ -5,7 +5,7 @@ from SuppFunctions import  *
 #
 class Neuron:
     #instance attributes
-    #self.weight_vector - this variable holds vector representing the weight values of neuron. It is represented by 2d array witho one row (to represent neuron as part of 1 neuron layer), so by row vector. The 0th index is assumed to represent bias.
+    #self.weight_vector - this variable holds vector representing the weight values of neuron. It is represented by 2d array with one row (to represent neuron as part of 1 neuron layer), so by row vector. The 0th index is assumed to represent bias.
     #self.activ_function - this variable holds activation function of neuron.
     #constructor
     def __init__(self,weights,activ_function, method_ini = "Zero", datatype_weights = "float64", random_lower_bound = 0.0, random_upper_bound = 1.0):

@@ -3,7 +3,9 @@ from InitFunctions import  *
 from SuppFunctions import  *
 
 class Layer:
-    
+    #instance attributes
+    #self.weight_array - this variable holds array representing the weight values of layer neurons. It is represented by 2d array where rows represent individual neurons and columns represent wieghts of neurons. The 0th column index is assumed to represent bias.
+    #self.activ_functions - this variable holds list of activation function of neurons in layer.
 
     #constructor
     def __init__(self,weights,activ_functions,method_ini = "Zero", datatype_weights = "float64", random_lower_bound = 0.0, random_upper_bound = 1.0):
@@ -38,17 +40,17 @@ class Layer:
             raise NotImplementedError
         #activation function assignment 
         if (callable(activ_functions)):#if given variable is callable then there is high chance that's the wanted activation function. It is not ideal solution, but it is optimal. In this case only one activ function is given and it is interpreted as all neurons should have same activ function
-            #list of length equal number of neurons is created. Based on assumption all activation functions would be the same.
+            #list of length equal to number of neurons is created. Based on assumption all activation functions would be the same if only one activation function is given .
             activ_functions_base = [activ_functions] * self.weight_array.shape[0]
-            #ready activ function list is passed as instance atrribute
+            #ready activ function list is passed to instance atrribute
             self.activ_functions = activ_functions_base
-        elif(type(activ_functions) == np.ndarray):#
+        elif(type(activ_functions) == np.ndarray):#different activation function for each neuron in layer would posssible if gven list of them (tool for customization). TO DO: implementation
             raise NotImplementedError
-        else:#if given variable is not an activation function, then class object can not be initialized due to lack (no activ function) or too much (e.g. vector of activ functions) of information. TO DO: implementing proper error
+        else:#if given variable is not an activation function, then class object can not be initialized due to lack (no activ function) of data. TO DO: implementing proper error
             raise NotImplementedError
     #
     def forward(self,input):
-        #gettin instance attributes to separate variables for readability
+        #getting instance attributes to separate variables for readability
         weight_array = self.weight_array
         activ_functions = self.activ_functions
         #input needs to be in form of np array. 
@@ -58,19 +60,19 @@ class Layer:
                 #depending on the array dimensionality the input can be interpreted differently. Due to this it needs to be checked and passed to proper method of handling.
                 number_dimensions = input.ndim
                 if(number_dimensions == 1):#given input vector needs to be represented as a column vector in 2D array format for matrix operations. Proper transformations are done below to do so.
-                    #the input needs to be represent as a 2D array with only one column(column vector) for matrix operations usage.
+                    #the input needs to be represent as a 2D array with only one column(column vector) for matrix operations usage (in case of vector).
                     input_format = input[:,np.newaxis]
-                elif(number_dimensions == 2):
+                elif(number_dimensions == 2):#given array might be not only array, but also row and column vector. If only vector is given, than it has to be in column vector form. To ensure proper form some verification and if necessery processing is done
                     input_format = getProperInputArray(input)
                 else:#if data is of dimensions that handling is not implement proper error should be thrown. TO DO: implement proper error
                     raise NotImplementedError 
-                #bias input is added to input vector
+                #bias input is added to input vector/array
                 input_ready = addBiasInput(input_format)
             else:#if given data is not proper, the error should be thrown. TO DO: proper error.
                 raise NotImplementedError
         else:#if given data is not in proper format, the error should be thrown. TO DO: proper error.
             raise NotImplementedError
-        #before proceeding with input propagation through neuron it needs to be verified if input is compatible.
+        #before proceeding with input propagation through layer it needs to be verified if input is compatible.
         if(weight_array.shape[1] == input_ready.shape[0]):#if they are compatible for matrix multiplication than operation can proceed
             #input is multiplied by weights for forward pass (matrix multiplication)
             matrix_multi = weight_array @ input_ready
