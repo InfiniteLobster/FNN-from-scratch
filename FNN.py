@@ -15,7 +15,7 @@ class FNN:
                 if(np.issubdtype(weights.dtype, np.integer)):#numbers in vector needs to be integers to represnt dimensions of layer and neurons in it
                     if(weights.size == 3):#as weights of single layer are represented by 2D array, then if you need to represent multiple of them you only need three numbers for dimensions. If there is less or more than ambiguity is created. To omit it, the initialization can proceed only with 3 numbers in vector.
                         nNeurons = weights[0]#first number is assumed to be for layer size (number of neurons in layer)
-                        nWeights = weights[1]#second number is assumed to be for number of weights in neurons of layer (bias is not counted)
+                        nWeights = weights[1]#second number is assumed to be for number of weights in first layer (bias is not counted).For rest of the layers, the number of inputs depends on number of neurons in previous layer
                         nLayers = weights[2]#thrid number is assumed to be for number of layers (input layer is not imputed as in design it is not represent in weight matrix list)
                         #
                         weights_layers = []
@@ -23,6 +23,8 @@ class FNN:
                         for iLayer in range(nLayers):
                             #weights are initializaed by basic method
                             weights_conversion = np.zeros([nNeurons,(nWeights+1)],dtype=datatype_weights)
+                            #for each subsequent layer, the number of weights depends on number of neurons in previous layer, so its assignment needs to be adjusted
+                            nWeights = nNeurons
                             #if method other than basic method (zero) was selected, than weights are initialized according to it
                             match method_ini:#(TO DO: implementing methods)
                                 case "Random":# in the random initialization the weights values are generated randomly as real numbers between given bounds
@@ -57,6 +59,49 @@ class FNN:
             raise NotImplementedError
 #methods
     def forward(self,input):
-        output = input
-
+        #getting instance attributes to separate variables for readability
+        weights_list = self.weights_list
+        activ_functions_list = self.activ_functions_list
+        #input needs to be in form of np array. 
+        if(type(input) == np.ndarray):
+            #input to Layer needs to be a rational number for the operations to be completed. Thus it needs to be verified.
+            if(isRationalNumber(input)):
+                #depending on the array dimensionality the input can be interpreted differently. Due to this it needs to be checked and passed to proper method of handling.
+                number_dimensions = input.ndim
+                if(number_dimensions == 1):#given input vector needs to be represented as a column vector in 2D array format for matrix operations. Proper transformations are done below to do so.
+                    #the input needs to be represent as a 2D array with only one column(column vector) for matrix operations usage (in case of vector).
+                    input_format = input[:,np.newaxis]
+                elif(number_dimensions == 2):#given array might be not only array, but also row and column vector. If only vector is given, than it has to be in column vector form. To ensure proper form some verification and if necessery processing is done
+                    input_format = getProperInputArray(input)
+                else:#if data is of dimensions that handling is not implement proper error should be thrown. TO DO: implement proper error
+                    raise NotImplementedError 
+            else:#if given data is not proper, the error should be thrown. TO DO: proper error.
+                raise NotImplementedError
+        else:#if given data is not in proper format, the error should be thrown. TO DO: proper error.
+            raise NotImplementedError
+        #
+        z = []
+        a = [input_format]#in this implementation first a would be input values (can be interpreted as representation of input layer, which is not represented by any network attribute in this implementation)
+        #
+        for iLayer in range(len(weights_list)):
+            #
+            weights_array = weights_list[iLayer]
+            activ_functions = activ_functions_list[iLayer]
+            input = a[-1]
+            #bias input is added to input vector/array
+            input_ready = addBiasInput(input)
+            #
+            if(weights_array.shape[1] == input_ready.shape[0]):
+                #input is multiplied by weights for forward pass (matrix multiplication)
+                matrix_multi = weights_array @ input_ready
+                #the results of input "passing through" weights needs to be put through activation functions
+                activation_out = activationLayer(matrix_multi,activ_functions)
+                #
+                z.append(matrix_multi)
+                a.append(activation_out)
+            else:#if inproper input was given and operation cannot proceed proper error should be raised. TO DO: implement proper error
+                raise NotImplementedError
+        #
+        output = [matrix_multi,activation_out]
+        #results are returned
         return output
