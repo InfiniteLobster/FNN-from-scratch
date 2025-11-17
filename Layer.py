@@ -3,11 +3,11 @@ from InitFunctions import  *
 from SuppFunctions import  *
 
 class Layer:
-    #instance attributes
-    #self.weight_array - this variable holds array representing the weight values of layer neurons. It is represented by 2d array where rows represent individual neurons and columns represent wieghts of neurons. The 0th column index is assumed to represent bias.
-    #self.activ_functions - this variable holds list of activation function of neurons in layer.
+#instance attributes
+#self.weights_array - this variable holds array representing the weight values of layer neurons. It is represented by 2d array where rows represent individual neurons and columns represent wieghts of neurons. The 0th column index is assumed to represent bias.
+#self.activ_functions - this variable holds list of activation function of neurons in layer.
 
-    #constructor
+#constructor
     def __init__(self,weights,activ_functions,method_ini = "Zero", datatype_weights = "float64", random_lower_bound = 0.0, random_upper_bound = 1.0):
         #weights assignment
         weights_dtype = type(weights)
@@ -25,7 +25,7 @@ class Layer:
                             case "Random":# in the random initialization the weights values are generated randomly as real numbers between given bounds
                                 weights_conversion = randomIni(weights_conversion,random_lower_bound,random_upper_bound)
                         #after initialization weights are assigned to object property
-                        self.weight_array= weights_conversion
+                        self.weights_array= weights_conversion
                     else:
                         raise NotImplementedError
                 else:#if in given vector the numbers are not integers, then they cannot be interpreted as dimensions for initialization, so weight creation is impossible. TO DO: Proper error should be thrown
@@ -41,17 +41,18 @@ class Layer:
         #activation function assignment 
         if (callable(activ_functions)):#if given variable is callable then there is high chance that's the wanted activation function. It is not ideal solution, but it is optimal. In this case only one activ function is given and it is interpreted as all neurons should have same activ function
             #list of length equal to number of neurons is created. Based on assumption all activation functions would be the same if only one activation function is given .
-            activ_functions_base = [activ_functions] * self.weight_array.shape[0]
+            activ_functions_base = [activ_functions] * self.weights_array.shape[0]
             #ready activ function list is passed to instance atrribute
             self.activ_functions = activ_functions_base
         elif(type(activ_functions) == np.ndarray):#different activation function for each neuron in layer would posssible if gven list of them (tool for customization). TO DO: implementation
             raise NotImplementedError
         else:#if given variable is not an activation function, then class object can not be initialized due to lack (no activ function) of data. TO DO: implementing proper error
             raise NotImplementedError
-    #
+#methods
+    #simple input processing by network
     def forward(self,input):
         #getting instance attributes to separate variables for readability
-        weight_array = self.weight_array
+        weights_array = self.weights_array
         activ_functions = self.activ_functions
         #input needs to be in form of np array. 
         if(type(input) == np.ndarray):
@@ -73,11 +74,11 @@ class Layer:
         #bias input is added to input vector/array to account for bias, which is 0 weight
         input_ready = addBiasInput(input_format)
         #before proceeding with input propagation through layer it needs to be verified if input is compatible.
-        if(weight_array.shape[1] == input_ready.shape[0]):#if they are compatible for matrix multiplication than operation can proceed
+        if(weights_array.shape[1] == input_ready.shape[0]):#if they are compatible for matrix multiplication than operation can proceed
             #input is multiplied by weights for forward pass (matrix multiplication)
-            z = weight_array @ input_ready
+            z = weights_array @ input_ready
             #the results of input "passing through" weights needs to be put through activation functions
-            a = activationLayer(matrix_multi,activ_functions)
+            a = activationLayer(z,activ_functions)
             #both matrix multiplication results (z) and activation results (a) are send out
             output = [z,a]
         else:#if inproper input was given and operation cannot proceed proper error should be raised. TO DO: implement proper error

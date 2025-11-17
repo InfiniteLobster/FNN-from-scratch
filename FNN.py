@@ -3,7 +3,9 @@ from InitFunctions import  *
 from SuppFunctions import  *
 
 class FNN:
-
+#instance attributes
+#self.weights_list - this variable holds list of arrays representing the weight values of layer neurons for each layer in the network. Weights are represented by 2d array where rows represent individual neurons and columns represent wieghts of neurons. The 0th column index is assumed to represent bias.
+#self.activ_functions_list - this variable holds list of "list of activation function of neurons in layer" for all layers.
 
 #constructor
     def __init__(self,weights,activ_functions,method_ini = "Zero", datatype_weights = "float64", random_lower_bound = 0.0, random_upper_bound = 1.0):
@@ -59,6 +61,7 @@ class FNN:
         else:#if given variable is not an activation function, then class object can not be initialized due to lack (no activ function) of data. TO DO: implementing proper error
             raise NotImplementedError
 #methods
+    #simple input processing by network
     def forward(self,input):
         #getting instance attributes to separate variables for readability
         weights_list = self.weights_list
