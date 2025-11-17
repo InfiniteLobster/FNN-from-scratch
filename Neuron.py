@@ -5,7 +5,7 @@ from SuppFunctions import  *
 #
 class Neuron:
     #instance attributes
-    #self.weight_vector - this variable holds vector representing the weight values of neuron. It is represented by 2d array witho one row (to represent neuron as part of 1 neuron layer), so by row vector. The 0th index is assumed to represent bias.
+    #self.weight_vector - this variable holds vector representing the weight values of neuron. It is represented by 2d array with one row (to represent neuron as part of 1 neuron layer), so by row vector. The 0th index is assumed to represent bias.
     #self.activ_function - this variable holds activation function of neuron.
     #constructor
     def __init__(self,weights,activ_function, method_ini = "Zero", datatype_weights = "float64", random_lower_bound = 0.0, random_upper_bound = 1.0):
@@ -19,11 +19,11 @@ class Neuron:
         #weights assignment
         if (type_weights == int):#this is case when weights values are not given by the user, only dimension(as it is for single neuron, e.g. one row of weights). In this case weights needs to be initialized. it is assumed that given value is without bias.
             #basic version (zero initialization) is always done as a base to ommit need to pass datatype information down to initialization methods
-            weights_conversion = np.zeros([1,(weights+1)],dtype=datatype_weights)#to represent neuron weight vector as one row of layer weight array, the weight vector is a 2D array with only one row(row vector).
+            weights_conversion = np.zeros([1,(weights+1)],dtype=datatype_weights)#to represent neuron weight vector as one row of layer weight array, the weight vector is a 2D array with only one row(row vector). Given number of weights is assumed to be without bias, so it is added for creation.
             #weights are initialized based on selected method
             match method_ini:#(TO DO: implementing methods)
                 case "Random":# in the random initialization the weights values are generated randomly as real numbers between given bounds
-                    weights_conversion = randomIniVector(weights_conversion,random_lower_bound,random_upper_bound)
+                    weights_conversion = randomIni(weights_conversion,random_lower_bound,random_upper_bound)
             #after initialization weight are assigned to object property
             self.weight_vector = weights_conversion
         elif (type_weights == np.ndarray):#this is the case when already initialized weights are passed for neuron object creation
@@ -67,14 +67,8 @@ class Neuron:
                     #the input needs to be represent as a 2D array with only one column(column vector) for matrix operations usage.
                     input_format = input[:,np.newaxis]
                 elif(number_dimensions == 2):
-                    #for proper representation the input, the input vector needs to be a column vector. It is checked if that's the case and changed if not.
-                    if(isRowVector(input)):
-                        input_format = input.T
-                    elif(isColVector(input)):
-                        input_format = input
-                    else:#if none of above true, then given variable is array and not vector. Appropriate error must be passed to user. TO DO: error implementation
-                        raise NotImplementedError
-                else:#if data is of dimensions that handling is not implement proper error should be thrown. TO DO: implenet proper error
+                    input_format = getProperInputArray(input)
+                else:#if data is of dimensions that handling is not implement proper error should be thrown. TO DO: implement proper error
                     raise NotImplementedError 
                 #bias input is added to input vector
                 input_ready = addBiasInput(input_format)
@@ -82,10 +76,16 @@ class Neuron:
                 raise NotImplementedError
         else:#if given data is not in proper format, the error should be thrown. TO DO: proper error.
             raise NotImplementedError
-        #input is multiplied by weights for forward pass (matrix multiplication)
-        matrix_multi = weight_vector @ input_ready
-        #the results of input "passing through" weights needs to be put through activation function
-        output = activ_function(matrix_multi.item())#as it is single value it returns just one value
+        #before proceeding with input propagation through neuron it needs to be verified if input is compatible.
+        if(weight_vector.shape[1] == input_ready.shape[0]):#if they are compatible for matrix multiplication than operation can proceed
+            #input is multiplied by weights for forward pass (matrix multiplication)
+            matrix_multi = weight_vector @ input_ready
+            #the results of input "passing through" weights needs to be put through activation function
+            activation_out = activ_function(matrix_multi)
+            #both matrix multiplication results (z) and activation results (a) are send out
+            output = [matrix_multi,activation_out]
+        else:#if inproper input was given and operation cannot proceed proper error should be raised. TO DO: implement proper error
+            raise NotImplementedError
         #results are returned
         return output
   

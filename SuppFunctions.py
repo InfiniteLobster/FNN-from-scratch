@@ -11,18 +11,36 @@ def ensureDtypeNpArray(array_in,data_type):
     return array_out
 #
 def isRationalNumber(array):
-    answer = (np.issubdtype(array.dtype, np.integer) | np.issubdtype(array.dtype, np.floating))
+    answer = ((np.issubdtype(array.dtype, np.integer)) | (np.issubdtype(array.dtype, np.floating)))
     return answer
 #
 def isRowVector(array):
     shape = array.shape
-    answer = shape[0] == 1 & shape[1] >= 1
+    answer = (shape[0] == 1 )& (shape[1] >= 1)
     return answer
 #
 def isColVector(array):
     shape = array.shape
-    answer = shape[0] >= 1 & shape[1] == 1
+    answer = (shape[0] >= 1) & (shape[1] == 1)
     return answer
+#
+def isArray(array):
+    shape = array.shape
+    answer = (shape[0] >= 1) & (shape[1] >= 1)
+    return answer
+#
+def getProperInputArray(array):
+    #for proper representation the input, the input vector needs to be a column vector or array. It is checked if that's the case and changed if not.
+    if(isRowVector(array)):
+        input_format = array.T
+    elif(isColVector(array)):
+        input_format = array
+    elif(isArray(array)):
+        input_format = array
+    else:#if none of above true, then given variable is in non implemented format. Appropriate error must be passed to user. TO DO: error implementation
+        raise NotImplementedError
+    #input is returned in proper format
+    return input_format
 #
 def addBiasInput(input):
     #
@@ -34,3 +52,19 @@ def addBiasInput(input):
     newInput[1:,:] = input
     #
     return newInput
+#
+def activationLayer(input,activ_functions):
+    #
+    shapeInput = input.shape
+    #
+    output = np.empty(shapeInput)
+    #
+    for iInput in range(shapeInput[1]):
+        #
+        input_current = input[:,iInput]
+        activ_function_current = activ_functions[iInput]
+        #
+        output_current = activ_function_current(input_current)
+        #
+        output[:,iInput] = output_current
+    return output
