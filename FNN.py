@@ -106,6 +106,6 @@ class FNN:
             else:#if inproper input was given and operation cannot proceed proper error should be raised. TO DO: implement proper error
                 raise NotImplementedError
         #results are joined together into list for proper output
-        output = [matrix_multi,activation_out]
+        output = [z,a]
         #results are returned
         return output
