@@ -66,20 +66,20 @@ class Layer:
                     input_format = getProperInputArray(input)
                 else:#if data is of dimensions that handling is not implement proper error should be thrown. TO DO: implement proper error
                     raise NotImplementedError 
-                #bias input is added to input vector/array
-                input_ready = addBiasInput(input_format)
             else:#if given data is not proper, the error should be thrown. TO DO: proper error.
                 raise NotImplementedError
         else:#if given data is not in proper format, the error should be thrown. TO DO: proper error.
             raise NotImplementedError
+        #bias input is added to input vector/array to account for bias, which is 0 weight
+        input_ready = addBiasInput(input_format)
         #before proceeding with input propagation through layer it needs to be verified if input is compatible.
         if(weight_array.shape[1] == input_ready.shape[0]):#if they are compatible for matrix multiplication than operation can proceed
             #input is multiplied by weights for forward pass (matrix multiplication)
-            matrix_multi = weight_array @ input_ready
+            z = weight_array @ input_ready
             #the results of input "passing through" weights needs to be put through activation functions
-            activation_out = activationLayer(matrix_multi,activ_functions)
+            a = activationLayer(matrix_multi,activ_functions)
             #both matrix multiplication results (z) and activation results (a) are send out
-            output = [matrix_multi,activation_out]
+            output = [z,a]
         else:#if inproper input was given and operation cannot proceed proper error should be raised. TO DO: implement proper error
             raise NotImplementedError
         #results are returned

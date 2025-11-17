@@ -13,13 +13,14 @@ class FNN:
             weights_dim = weights.ndim#depending on dimension of given data, the interpretation of weights assignment is different (or can be impossible), so it is evaluated and logic proceedes through ifelse construct
             if(weights_dim == 1):#if vector is given then it is assumed that it is for weight assignment, they should be initialized
                 if(np.issubdtype(weights.dtype, np.integer)):#numbers in vector needs to be integers to represnt dimensions of layer and neurons in it
+                    #TO DO: this part needs to change for real usability.
                     if(weights.size == 3):#as weights of single layer are represented by 2D array, then if you need to represent multiple of them you only need three numbers for dimensions. If there is less or more than ambiguity is created. To omit it, the initialization can proceed only with 3 numbers in vector.
                         nNeurons = weights[0]#first number is assumed to be for layer size (number of neurons in layer)
                         nWeights = weights[1]#second number is assumed to be for number of weights in first layer (bias is not counted).For rest of the layers, the number of inputs depends on number of neurons in previous layer
                         nLayers = weights[2]#thrid number is assumed to be for number of layers (input layer is not imputed as in design it is not represent in weight matrix list)
-                        #
+                        #list to hold 2D weight arrays of layers is declared for proper assignment in loop.
                         weights_layers = []
-                        #
+                        #to initialize
                         for iLayer in range(nLayers):
                             #weights are initializaed by basic method
                             weights_conversion = np.zeros([nNeurons,(nWeights+1)],dtype=datatype_weights)
@@ -62,7 +63,7 @@ class FNN:
         #getting instance attributes to separate variables for readability
         weights_list = self.weights_list
         activ_functions_list = self.activ_functions_list
-        #input needs to be in form of np array. 
+        #input needs to be in form of np array and that needs to be verified. 
         if(type(input) == np.ndarray):
             #input to Layer needs to be a rational number for the operations to be completed. Thus it needs to be verified.
             if(isRationalNumber(input)):
@@ -79,29 +80,29 @@ class FNN:
                 raise NotImplementedError
         else:#if given data is not in proper format, the error should be thrown. TO DO: proper error.
             raise NotImplementedError
-        #
-        z = []
-        a = [input_format]#in this implementation first a would be input values (can be interpreted as representation of input layer, which is not represented by any network attribute in this implementation)
-        #
+        #matix multiplications results and activation results needs to be saved for output. For this purpose variables with lists are created
+        z = [input_format]#in this implementation a first value of z(matrix multi results) would be input values (can be interpreted as representation of input layer, which is not represented by any network attribute in this implementation) as for input layer it is input.
+        a = [input_format]#in this implementation a first value of a(activation results) would be input values (can be interpreted as representation of input layer, which is not represented by any network attribute in this implementation) as for input layer it is identity value.
+        #input needs to propagate through all layers in network and it is achieved by looping through them.
         for iLayer in range(len(weights_list)):
-            #
+            #variables necessery for current layer propagations are assigned to local variables for readability
             weights_array = weights_list[iLayer]
             activ_functions = activ_functions_list[iLayer]
             input = a[-1]
-            #bias input is added to input vector/array
+            #bias input is added to input vector/array to account for bias, which is 0 weight
             input_ready = addBiasInput(input)
-            #
+            #it needs to be verified if matrix multiplication can be performed. Theoretically it should be strictly necessery only for first input as rest should be accounted by architecture, but it is present for all if some undetected mistake was made in architecture creation.
             if(weights_array.shape[1] == input_ready.shape[0]):
                 #input is multiplied by weights for forward pass (matrix multiplication)
                 matrix_multi = weights_array @ input_ready
                 #the results of input "passing through" weights needs to be put through activation functions
                 activation_out = activationLayer(matrix_multi,activ_functions)
-                #
+                #calculated values are passed to lists storing them
                 z.append(matrix_multi)
                 a.append(activation_out)
             else:#if inproper input was given and operation cannot proceed proper error should be raised. TO DO: implement proper error
                 raise NotImplementedError
-        #
+        #results are joined together into list for proper output
         output = [matrix_multi,activation_out]
         #results are returned
         return output
