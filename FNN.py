@@ -15,17 +15,17 @@ class FNN:
             weights_dim = weights.ndim#depending on dimension of given data, the interpretation of weights assignment is different (or can be impossible), so it is evaluated and logic proceedes through ifelse construct
             if(weights_dim == 1):#if vector is given then it is assumed that it is for weight assignment, they should be initialized
                 if(np.issubdtype(weights.dtype, np.integer)):#numbers in vector needs to be integers to represnt dimensions of layer and neurons in it
-                    #TO DO: this part needs to change for real usability.
-                    if(weights.size == 3):#as weights of single layer are represented by 2D array, then if you need to represent multiple of them you only need three numbers for dimensions. If there is less or more than ambiguity is created. To omit it, the initialization can proceed only with 3 numbers in vector.
-                        nNeurons = weights[0]#first number is assumed to be for layer size (number of neurons in layer)
-                        nWeights = weights[1]#second number is assumed to be for number of weights in first layer (bias is not counted).For rest of the layers, the number of inputs depends on number of neurons in previous layer
-                        nLayers = weights[2]#thrid number is assumed to be for number of layers (input layer is not imputed as in design it is not represent in weight matrix list)
+                    if(weights.size > 1):#you need at least 2 layers counting input to create smallest network
+                        nWeights = weights[0]#first number is assumed to be for number of neurons in input layers
+                        nLayers = (len(weights) - 1)#the number of layers to be initialized is smaller by 1, because input layer is not represented by weights in this implementation
                         #list to hold 2D weight arrays of layers is declared for proper assignment in loop.
                         weights_layers = []
-                        #to initialize
+                        #to initialize network, all layers (except input) needs to be initialize separately to ensure that is done properly.
                         for iLayer in range(nLayers):
+                            #getting number of neurons in current layer
+                            nNeurons = weights[iLayer+1]
                             #weights are initializaed by basic method
-                            weights_conversion = np.zeros([nNeurons,(nWeights+1)],dtype=datatype_weights)
+                            weights_conversion = np.zeros([nNeurons,(nWeights+1)],dtype=datatype_weights)#bias is accounted for by adding 1
                             #for each subsequent layer, the number of weights depends on number of neurons in previous layer, so its assignment needs to be adjusted
                             nWeights = nNeurons
                             #if method other than basic method (zero) was selected, than weights are initialized according to it
