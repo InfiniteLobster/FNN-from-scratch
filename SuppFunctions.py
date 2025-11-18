@@ -1,5 +1,5 @@
 import numpy as np
-
+from ActivFunctions import  *
 #
 def ensureDtypeNpArray(array_in,data_type):
     #
@@ -62,9 +62,18 @@ def activationLayer(input,activ_functions):
     for iInput in range(shapeInput[1]):
         #
         input_current = input[:,iInput]
-        activ_function_current = activ_functions[iInput]
         #
-        output_current = activ_function_current(input_current)
-        #
-        output[:,iInput] = output_current
+        for iNeuron in range(input_current.shape[0]):
+            #
+            activ_function_current = activ_functions[iNeuron]
+            #
+            output_current = activ_function_current(input_current[iNeuron])
+            #
+            output[iNeuron,iInput] = output_current
     return output
+#
+def getDer(func):
+    #
+    if(func == identity):
+        der = der_identity
+    return der
