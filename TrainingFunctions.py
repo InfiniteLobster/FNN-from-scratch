@@ -1,5 +1,4 @@
 import SuppFunctions
-from ActivFunctions import identity_derivative, identity
 
 
 def backwards(network, inputs, targets, loss_derivative):
@@ -29,9 +28,12 @@ def backwards(network, inputs, targets, loss_derivative):
     grad_a_L = loss_derivative(targets, a_L)
 
     # Activation derivatives must be computed to continue the chain rule.
-    # Since identity activation is used in current implementation, its derivative
-    # is simply a matrix of ones matching z’s shape.
-    activation_deriv_last = identity_derivative(z_L)
+    # Instead of hard-coding identity, derivative is retrieved dynamically
+    # using getDer() based on the activation function assigned to this layer.
+    activ_functions_last = network.activ_functions_list[-1]
+    act_last = activ_functions_last[0]                   # activation function of neurons in this layer
+    act_der_last = SuppFunctions.getDer(act_last)        # derivative function
+    activation_deriv_last = act_der_last(z_L)
 
     # Gradient of loss with respect to z of the final layer is obtained by
     # element-wise multiplication of previous gradient and activation derivative.
@@ -64,8 +66,12 @@ def backwards(network, inputs, targets, loss_derivative):
             # First entry corresponds to bias and must be excluded.
             back_signal_no_bias = back_signal[1:, :]
 
-            # Derivative of activation for the previous layer (identity again).
-            activation_deriv_prev = identity_derivative(z_values[layer_index - 1])
+            # Derivative of activation for the previous layer is retrieved dynamically
+            # using getDer(), ensuring support for any activation function.
+            activ_functions_prev = network.activ_functions_list[layer_index - 1]
+            act_prev = activ_functions_prev[0]
+            act_der_prev = SuppFunctions.getDer(act_prev)
+            activation_deriv_prev = act_der_prev(z_values[layer_index - 1])
 
             # Update grad_z for the next iteration (layer below).
             grad_z = back_signal_no_bias * activation_deriv_prev
