@@ -15,18 +15,17 @@ class Neuron:
             self.activ_function = activ_function
         else:#if given variable is not an activation function, then class object can not be initialized due to lack (no activ function) or too much (e.g. vector of activ functions) of information. 
             raise NotSupportedInputGiven("activation function initialization","Given variable is not a function and thus can not be used as activation function.")
-        #based on the input (weights) the weight vector of the object would be assigned (or created, initialized). The choice of method is based on the data type of input
-        type_weights = type(weights)
         #conversion of given weight input if it is list instead of np array (not always possible as numbers are needed)
         if(type(weights) == list):
             try:
                 weights = np.asanyarray(weights, dtype = datatype_weights)
-                type_weights = type(weights)
             except Exception as error_caught:
                 if(isinstance(error_caught,ValueError)):
                     raise NotSupportedInputGiven("weights initialization","Values given in list are not  numbers and thus can not be used as weight values.")
                 else:
                     raise error_caught
+        #based on the input (weights) the weight vector of the object would be assigned (or created, initialized). The choice of method is based on the data type of input
+        type_weights = type(weights)
         #weights assignment
         if (type_weights == int):#this is case when weights values are not given by the user, only dimension(as it is for single neuron, e.g. one row of weights). In this case weights needs to be initialized. it is assumed that given value is without bias.
             #basic version (zero initialization) is always done as a base to ommit need to pass datatype information down to initialization methods

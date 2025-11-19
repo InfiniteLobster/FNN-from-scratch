@@ -42,7 +42,7 @@ class FNN:
                     raise NotSupportedInputGiven("weights initialization","Given values in vector must be integers to properly represent number of neurons in layers")
             else:#array of incompatible size was given. Processing is not possible, so proper error should be thrown.
                 raise NotSupportedArrayDimGiven("1")
-        elif(weights_dtype == list):#additional option of initialization through list can be considered
+        elif(weights_dtype == list):#additional option of initialization through list can be considered. TO DO: conversion from list to np array before evaluation -> fixes the problem of separate elif with same content as in vector of np
             raise NotImplementedError
         else:#input that is not compatible was given. Operation cannot proceed, so proper error should be thrown.
             raise NotSupportedInputGiven("weights initialization")

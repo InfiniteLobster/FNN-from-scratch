@@ -1,6 +1,7 @@
 import numpy as np
 from InitFunctions import  *
 from SuppFunctions import  *
+from ErrorClasses import *
 
 class Layer:
 #instance attributes
@@ -9,9 +10,17 @@ class Layer:
 
 #constructor
     def __init__(self,weights,activ_functions,method_ini = "Zero", datatype_weights = "float64", random_lower_bound = 0.0, random_upper_bound = 1.0):
+        #conversion of given weight input if it is list instead of np array (not always possible as numbers are needed)
+        if(type(weights) == list):
+            try:
+                weights = np.asanyarray(weights, dtype = datatype_weights)
+            except Exception as error_caught:
+                if(isinstance(error_caught,ValueError)):
+                    raise NotSupportedInputGiven("weights initialization","Values given in list are not numbers and thus can not be used as weight values.")
+                else:
+                    raise error_caught
         #weights assignment
-        weights_dtype = type(weights)
-        if(weights_dtype == np.ndarray):#based on input types the weight assignment would process differently, so it is split by ifelse construct
+        if(type(weights) == np.ndarray):#based on input types the weight assignment would process differently, so it is split by ifelse construct
             weights_dim = weights.ndim#depending on dimension of given data, the interpretation of weights assignment is different (or can be impossible), so it is evaluated and logic proceedes through ifelse construct
             if(weights_dim == 1):#if vector is given then it is assumed that it is for weight assignment, they should be initialized
                 if(np.issubdtype(weights.dtype, np.integer)):#numbers in vector needs to be integers to represnt dimensions of layer and neurons in it
@@ -31,11 +40,15 @@ class Layer:
                 else:#if in given vector the numbers are not integers, then they cannot be interpreted as dimensions for initialization, so weight creation is impossible. TO DO: Proper error should be thrown
                     raise NotImplementedError
             elif(weights_dim == 2):
-                raise NotImplementedError
+                if(weights.shape[0] >= 1 | weights.shape[0] >= 1 ):
+                    if(isRationalNumber(weights)):
+                        self.weights_array= weights
+                    else:
+                         NotImplementedError  
+                else:
+                    NotImplementedError
             else:#array of incompatible size was given. Processing is not possible, so proper error should be thrown. TO DO: Implement proper error
                 raise NotImplementedError
-        elif(weights_dtype == list):#additional option of initialization through list can be considered
-            raise NotImplementedError
         else:#input that is not compatible was given. Operation cannot proceed, so proper error should be thrown. TO DO: Implement proper error
             raise NotImplementedError
         #activation function assignment 
