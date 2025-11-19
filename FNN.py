@@ -1,6 +1,7 @@
 import numpy as np
 from InitFunctions import  *
 from SuppFunctions import  *
+from ErrorClasses import *
 
 class FNN:
 #instance attributes
@@ -36,17 +37,15 @@ class FNN:
                         #after initialization weights are assigned to object property
                         self.weights_list= weights_layers
                     else:
-                        raise NotImplementedError
-                else:#if in given vector the numbers are not integers, then they cannot be interpreted as dimensions for initialization, so weight creation is impossible. TO DO: Proper error should be thrown
-                    raise NotImplementedError
-            elif(weights_dim == 2):
-                raise NotImplementedError
-            else:#array of incompatible size was given. Processing is not possible, so proper error should be thrown. TO DO: Implement proper error
-                raise NotImplementedError
+                        raise NotSupportedInputGiven("weights initialization","At least two numbers are needed for FNN creation: FNN needs at least input and output layer.")
+                else:#if in given vector the numbers are not integers, then they cannot be interpreted as number of neurons, so weight creation is impossible. TO DO: Proper error should be thrown
+                    raise NotSupportedInputGiven("weights initialization","Given values in vector must be integers to properly represent number of neurons in layers")
+            else:#array of incompatible size was given. Processing is not possible, so proper error should be thrown.
+                raise NotSupportedArrayDimGiven("1")
         elif(weights_dtype == list):#additional option of initialization through list can be considered
             raise NotImplementedError
-        else:#input that is not compatible was given. Operation cannot proceed, so proper error should be thrown. TO DO: Implement proper error
-            raise NotImplementedError
+        else:#input that is not compatible was given. Operation cannot proceed, so proper error should be thrown.
+            raise NotSupportedInputGiven("weights initialization")
         #activation function assignment 
         if (callable(activ_functions)):#if given variable is callable then there is high chance that's the wanted activation function. It is not ideal solution, but it is optimal. In this case only one activ function is given and it is interpreted as all neurons should have same activ function
             #list of length equal to number of neurons is created. Based on assumption all activation functions would be the same if only one activation function is given .
