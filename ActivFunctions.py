@@ -1,20 +1,11 @@
 import numpy as np
-
-# ============================================================
-# Identity
-# ============================================================
-
+#identity
 def identity(x):
     return x
 
 def der_identity(x):
-    return 1.0
-
-
-# ============================================================
-# Sigmoid
-# ============================================================
-
+    return 1
+#Sigmoid
 def sigmoid(x):
     # numerically stable
     return 1.0 / (1.0 + np.exp(-x))
@@ -22,34 +13,20 @@ def sigmoid(x):
 def der_sigmoid(x):
     s = sigmoid(x)
     return s * (1.0 - s)
-
-
-# ============================================================
-# Tanh
-# ============================================================
-
+#Tanh
 def tanh(x):
     return np.tanh(x)
 
 def der_tanh(x):
     t = np.tanh(x)
     return 1.0 - t**2
-
-
-# ============================================================
-# ReLU
-# ============================================================
-
+#ReLU
 def relu(x):
     return np.maximum(0.0, x)
 
 def der_relu(x):
     return 1.0 * (x > 0.0)
-
-
-# ============================================================
 # Leaky ReLU
-# ============================================================
 
 _LEAKY_SLOPE = 0.01
 
@@ -58,12 +35,7 @@ def leaky_relu(x):
 
 def der_leaky_relu(x):
     return np.where(x > 0.0, 1.0, _LEAKY_SLOPE)
-
-
-# ============================================================
-# Softmax (vector input)
-# ============================================================
-
+#Softmax (vector input)
 def softmax(x):
     """
     Softmax supports vector or column-vector input.
