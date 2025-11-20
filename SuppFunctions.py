@@ -72,8 +72,21 @@ def activationLayer(input,activ_functions):
             output[iNeuron,iInput] = output_current
     return output
 #
+der_map = {
+    identity: der_identity,
+    sigmoid: der_sigmoid,
+    tanh: der_tanh,
+    relu: der_relu,
+    leaky_relu: der_leaky_relu,
+    softmax: der_softmax
+}
 def getDer(func):
-    #
-    if(func == identity):
-        der = der_identity
-    return der
+    if func in der_map:
+        return der_map[func]
+    raise NotImplementedError(f"Derivative not implemented for {func.__name__}")
+#
+def clip_gradient(grad, threshold=1.0):
+    norm = np.linalg.norm(grad)
+    if norm > threshold:
+        grad = grad * (threshold / norm)
+    return grad
