@@ -1,5 +1,22 @@
 import numpy as np
-from ActivFunctions import  *
+from ActivFunctions import (
+    identity, der_identity,
+    sigmoid, der_sigmoid,
+    tanh, der_tanh,
+    relu, der_relu,
+    leaky_relu, der_leaky_relu,
+    softmax, der_softmax
+)
+
+der_map = {
+    identity: der_identity,
+    sigmoid: der_sigmoid,
+    tanh: der_tanh,
+    relu: der_relu,
+    leaky_relu: der_leaky_relu,
+    softmax: der_softmax
+}
+
 #
 def ensureDtypeNpArray(array_in,data_type):
     #
@@ -73,7 +90,12 @@ def activationLayer(input,activ_functions):
     return output
 #
 def getDer(func):
-    #
-    if(func == identity):
-        der = der_identity
-    return der
+    if func in der_map:
+        return der_map[func]
+    raise NotImplementedError(f"Derivative not implemented for {func.__name__}")
+
+def clip_gradient(grad, threshold=1.0):
+    norm = np.linalg.norm(grad)
+    if norm > threshold:
+        grad = grad * (threshold / norm)
+    return grad
