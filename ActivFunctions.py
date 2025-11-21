@@ -28,13 +28,12 @@ def der_relu(x):
     return 1.0 * (x > 0.0)
 # Leaky ReLU
 
-_LEAKY_SLOPE = 0.01
+def leaky_relu(x, slope=0.01):
+    return np.where(x > 0, x, slope * x)
 
-def leaky_relu(x):
-    return np.where(x > 0.0, x, _LEAKY_SLOPE * x)
+def der_leaky_relu(x, slope=0.01):
+    return np.where(x > 0, 1.0, slope)
 
-def der_leaky_relu(x):
-    return np.where(x > 0.0, 1.0, _LEAKY_SLOPE)
 #Softmax (vector input)
 def softmax(x):
     """
