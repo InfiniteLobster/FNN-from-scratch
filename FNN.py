@@ -55,7 +55,7 @@ class FNN:
                 activ_functions_list.append(activ_functions_base)
             #ready activ function list is passed to instance atrribute
             self.activ_functions_list = activ_functions_list
-        elif(type(activ_functions) == np.ndarray):#different activation function for each neuron in layer would posssible if gven list of them (tool for customization). TO DO: implementation
+        elif(type(activ_functions) == list):#different activation function for each neuron in layer would posssible if given list of them (tool for customization). TO DO: implementation
             raise NotImplementedError
         else:#if given variable is not an activation function, then class object can not be initialized due to lack (no activ function) of data. TO DO: implementing proper error
             raise NotImplementedError

@@ -57,8 +57,30 @@ class Layer:
             activ_functions_base = [activ_functions] * self.weights_array.shape[0]
             #ready activ function list is passed to instance atrribute
             self.activ_functions = activ_functions_base
-        elif(type(activ_functions) == np.ndarray):#different activation function for each neuron in layer would posssible if gven list of them (tool for customization). TO DO: implementation
-            raise NotImplementedError
+        elif(type(activ_functions) == list):#different activation function for each neuron in layer would posssible if gven list of them (tool for customization). TO DO: implementation
+            #
+            num_activ_functions = len(activ_functions)
+            #
+            if(num_activ_functions == 1):
+                #list of length equal to number of neurons is created. Based on assumption all activation functions would be the same if only one activation function is given .
+                activ_functions_base = [activ_functions[0,0]] * self.weights_array.shape[0]
+                #ready activ function list is passed to instance atrribute
+                self.activ_functions = activ_functions_base
+            elif(num_activ_functions == weights.ndim[0]):
+                #
+                activ_functions_base = []
+                #
+                for iNeuron in range(num_activ_functions):
+                    #
+                    current_func = activ_functions[iNeuron]
+                    #
+                    if(callable(current_func)):
+                        activ_functions_base.append(current_func)
+                    else:
+                        raise NotImplementedError
+                self.activ_functions = activ_functions_base
+            else:
+                raise NotImplementedError
         else:#if given variable is not an activation function, then class object can not be initialized due to lack (no activ function) of data. TO DO: implementing proper error
             raise NotImplementedError
 #methods
