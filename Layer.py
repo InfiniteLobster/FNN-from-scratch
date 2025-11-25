@@ -22,7 +22,7 @@ class Layer:
         #weights assignment
         if(type(weights) == np.ndarray):#based on input types the weight assignment would process differently, so it is split by ifelse construct
             weights_dim = weights.ndim#depending on dimension of given data, the interpretation of weights assignment is different (or can be impossible), so it is evaluated and logic proceedes through ifelse construct
-            if(weights_dim == 1):#if vector is given then it is assumed that it is for weight assignment, they should be initialized
+            if(weights_dim == 1):#if vector is given then it is assumed that it is for weight assignment, they should be initialized. It would also serve as initialization of instance by list (converted earlier to np.array so this segment of code can be used in both cases).
                 if(np.issubdtype(weights.dtype, np.integer)):#numbers in vector needs to be integers to represnt dimensions of layer and neurons in it
                     if(weights.size == 2):#as weights of single layer are represented by 2D array, then only two numbers for dimensions are needed. If there is less or more than ambiguity is created. To omit it, the initialization can proceed only with 2 numbers.
                         nNeurons = weights[0]#first number is assumed to be for layer size (number of neurons in layer)
@@ -36,15 +36,16 @@ class Layer:
                         #after initialization weights are assigned to object property
                         self.weights_array= weights_conversion
                     else:
-                        raise NotImplementedError
+                        raise NotSupportedArrayDimGiven("1")
                 else:#if in given vector the numbers are not integers, then they cannot be interpreted as dimensions for initialization, so weight creation is impossible. TO DO: Proper error should be thrown
-                    raise NotImplementedError
-            elif(weights_dim == 2):
-                if(weights.shape[0] >= 1 | weights.shape[0] >= 1 ):
+                    raise NotSupportedInputGiven("weights initialization","Given values are not integers and thus can not represent of layer weights matrix.")
+            elif(weights_dim == 2):#if given array has 2 dimensions, then it is assumed that it is weight array of Layer instance.
+                #to create layer, there needs to be information to represent at least 1 neuron with at least one weight (bias if one), i.e. weight array can not be empty.
+                if(weights.shape[0] >= 1 | weights.shape[1] >= 1 ):
                     if(isRationalNumber(weights)):
                         self.weights_array= weights
                     else:
-                         NotImplementedError  
+                        raise NotSupportedInputGiven("weights initialization","Given values are not a rational numbers and thus can not be used as weight values.")
                 else:
                     NotImplementedError
             else:#array of incompatible size was given. Processing is not possible, so proper error should be thrown. TO DO: Implement proper error
@@ -57,13 +58,13 @@ class Layer:
             activ_functions_base = [activ_functions] * self.weights_array.shape[0]
             #ready activ function list is passed to instance atrribute
             self.activ_functions = activ_functions_base
-        elif(type(activ_functions) == list):#different activation function for each neuron in layer would posssible if gven list of them (tool for customization). TO DO: implementation
+        elif(type(activ_functions) == list):#different activation function for each neuron in layer would posssible if given list of them (tool for customization). TO DO: implementation
             #
             num_activ_functions = len(activ_functions)
             #
             if(num_activ_functions == 1):
                 #list of length equal to number of neurons is created. Based on assumption all activation functions would be the same if only one activation function is given .
-                activ_functions_base = [activ_functions[0,0]] * self.weights_array.shape[0]
+                activ_functions_base = [activ_functions[0]] * self.weights_array.shape[0]
                 #ready activ function list is passed to instance atrribute
                 self.activ_functions = activ_functions_base
             elif(num_activ_functions == weights.ndim[0]):
