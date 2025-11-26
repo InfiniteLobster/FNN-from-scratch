@@ -13,7 +13,7 @@ class Layer:
         #conversion of given weight input if it is list instead of np array (not always possible as numbers are needed)
         if(type(weights) == list):
             try:
-                weights = np.asanyarray(weights, dtype = datatype_weights)
+                weights = np.asanyarray(weights)#compared to Neuron class, the list can only represent dimensions, so it has to be in format for dimensions not weights (dtype = datatype_weights is missing here)
             except Exception as error_caught:
                 if(isinstance(error_caught,ValueError)):
                     raise NotSupportedInputGiven("weights initialization","Values given in list are not numbers and thus can not be used as weight values.")
@@ -41,7 +41,7 @@ class Layer:
                     raise NotSupportedInputGiven("weights initialization","Given values are not integers and thus can not represent of layer weights matrix.")
             elif(weights_dim == 2):#if given array has 2 dimensions, then it is assumed that it is weight array of Layer instance.
                 #to create layer, there needs to be information to represent at least 1 neuron with at least one weight (bias if one), i.e. weight array can not be empty.
-                if(weights.shape[0] >= 1 | weights.shape[1] >= 1 ):
+                if((weights.shape[0] >= 1) & (weights.shape[1] >= 1 )):
                     #only rational numbers can represent weight values in this implementation, so it needs to be verified if that;s the case and raise error if not.
                     if(isRationalNumber(weights)):#if numbers are rational than they can be weights
                         #assigning given weights to object instance property
@@ -69,7 +69,7 @@ class Layer:
                 activ_functions_base = [activ_functions[0]] * self.weights_array.shape[0]
                 #ready activ function list is passed to instance atrribute
                 self.activ_functions = activ_functions_base
-            elif(num_activ_functions == weights.ndim[0]):#number of activation function should match the number of neurons (or be single one to be the same for the whole layer) for proper initialization
+            elif(num_activ_functions == weights.shape[0]):#number of activation function should match the number of neurons (or be single one to be the same for the whole layer) for proper initialization
                 #each activation function would be appended to this list
                 activ_functions_base = []
                 #each element of list needs to be tested if it is functiuon (same mechanism as before).
@@ -92,6 +92,15 @@ class Layer:
         #getting instance attributes to separate variables for readability
         weights_array = self.weights_array
         activ_functions = self.activ_functions
+        #conversion of given input if it is list instead of np array (not always possible as numbers are needed)
+        if(type(input) == list):
+            try:
+                input = np.asanyarray(input, dtype = weights_array.dtype)#input should be in same format as weights to stay consistent with data types in calculations.
+            except Exception as error_caught:
+                if(isinstance(error_caught,ValueError)):
+                    raise NotSupportedInputGiven("input propagation","Values given in list are not numbers and thus can not be used as input to neuron.")
+                else:
+                    raise error_caught
         #input needs to be in form of np array. 
         if(type(input) == np.ndarray):
             #input to Layer needs to be a rational number for the operations to be completed. Thus it needs to be verified.

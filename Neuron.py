@@ -70,7 +70,7 @@ class Neuron:
         #conversion of given input if it is list instead of np array (not always possible as numbers are needed)
         if(type(input) == list):
             try:
-                input = np.asanyarray(input, dtype = weight_vector.dtype)
+                input = np.asanyarray(input, dtype = weight_vector.dtype)#input should be in same format as weights to stay consistent with data types in calculations.
             except Exception as error_caught:
                 if(isinstance(error_caught,ValueError)):
                     raise NotSupportedInputGiven("input propagation","Values given in list are not numbers and thus can not be used as input to neuron.")
