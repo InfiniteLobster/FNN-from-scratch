@@ -10,11 +10,23 @@ class FNN:
 
 #constructor
     def __init__(self,weights,activ_functions,method_ini = "Zero", datatype_weights = "float64", random_lower_bound = 0.0, random_upper_bound = 1.0):
+        #if given weight information is list of neuron numbers in each dimension than it needs to be converted into np array (for code uniformity).
+        if(type(weights) == list):#it first need to be checked if given input is list
+            #
+            if(len(weights) == 0):
+                raise NotImplementedError 
+            #
+            if(all(isinstance(weight, int) for weight in weights)):#now it is checked if it is list of integer values (not np arrays like with other initialization method)
+                try:
+                    weights = np.asanyarray(weights)#compared to Neuron class, the list can only represent dimensions, so it has to be in format for dimensions not weights (dtype = datatype_weights is missing here)
+                except Exception as error_caught:
+                    if(isinstance(error_caught,ValueError)):
+                        raise NotSupportedInputGiven("weights initialization","Values given in list are not numbers and thus can not be used as network dimensions.")
+                else:
+                    raise error_caught
         #weights assignment
-        weights_dtype = type(weights)
-        if(weights_dtype == np.ndarray):#based on input types the weight assignment would process differently, so it is split by ifelse construct
-            weights_dim = weights.ndim#depending on dimension of given data, the interpretation of weights assignment is different (or can be impossible), so it is evaluated and logic proceedes through ifelse construct
-            if(weights_dim == 1):#if vector is given then it is assumed that it is for weight assignment, they should be initialized
+        if(type(weights) == np.ndarray):#based on input types the weight assignment would process differently, so it is split by ifelse construct
+            if(weights.ndim == 1):#if vector is given then it is assumed that it is for weight initialization by number of neurons in each layer information
                 if(np.issubdtype(weights.dtype, np.integer)):#numbers in vector needs to be integers to represnt dimensions of layer and neurons in it
                     if(weights.size > 1):#you need at least 2 layers counting input to create smallest network
                         nWeights = weights[0]#first number is assumed to be for number of neurons in input layers
@@ -42,8 +54,29 @@ class FNN:
                     raise NotSupportedInputGiven("weights initialization","Given values in vector must be integers to properly represent number of neurons in layers")
             else:#array of incompatible size was given. Processing is not possible, so proper error should be thrown.
                 raise NotSupportedArrayDimGiven("1")
-        elif(weights_dtype == list):#additional option of initialization through list can be considered. TO DO: conversion from list to np array before evaluation -> fixes the problem of separate elif with same content as in vector of np
-            raise NotImplementedError
+        elif(type(weights) == list):#in this case network is initialized by giving all weights
+            #first it is verified if in all elements of list there are arrays representing layers
+            if(all(isinstance(weight, np.ndarray) for weight in weights)):
+                #list to hold 2D weight arrays of layers is declared for proper assignment in loop.
+                weights_layers = []
+                #to initialize network weight layers, all layers needs to be initialize separately to ensure that is done properly (verification if dimensions match so that input propagation is possible).
+                for iLayer in range(nLayers):
+                    #weight array is assigned to variable
+                    weights_array = weights[iLayer]
+                    if(iLayer>0):#for all, but first layer it needs to be checked if given weight arrays allow the input propagation through network. If not error should be thrown
+                        #
+                        if(weights_array.shape[1]== weights_layers[-1].shape[0]):
+                            weights_layers.append(weights_array)
+                        else:
+                            raise NotImplementedError 
+                    else:
+                        #
+                        if((weights_array.shape[0] > 0) | (weights_array.shape[1] > 0)):
+                            weights_layers.append(weights_array)
+                        else:
+                            raise NotImplementedError 
+            else:
+                raise NotImplementedError
         else:#input that is not compatible was given. Operation cannot proceed, so proper error should be thrown.
             raise NotSupportedInputGiven("weights initialization")
         #activation function assignment 

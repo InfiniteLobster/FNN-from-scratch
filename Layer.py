@@ -16,7 +16,7 @@ class Layer:
                 weights = np.asanyarray(weights)#compared to Neuron class, the list can only represent dimensions, so it has to be in format for dimensions not weights (dtype = datatype_weights is missing here)
             except Exception as error_caught:
                 if(isinstance(error_caught,ValueError)):
-                    raise NotSupportedInputGiven("weights initialization","Values given in list are not numbers and thus can not be used as weight values.")
+                    raise NotSupportedInputGiven("weights initialization","Values given in list are not numbers and thus can not be used as weight array dimensions.")#not being integers is caught in other section below. There is no need to repeat.
                 else:
                     raise error_caught
         #weights assignment
