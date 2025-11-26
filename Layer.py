@@ -36,22 +36,24 @@ class Layer:
                         #after initialization weights are assigned to object property
                         self.weights_array= weights_conversion
                     else:
-                        raise NotSupportedArrayDimGiven("1")
+                        raise NotSupportedInputGiven("weights initialization","In this implementation initialization by vector (1 dim) is only supported for dimensions to initialize. As there are only 2 dimensions to initialize layer any other are unsuitable and raise error due to ambiguity")
                 else:#if in given vector the numbers are not integers, then they cannot be interpreted as dimensions for initialization, so weight creation is impossible. TO DO: Proper error should be thrown
                     raise NotSupportedInputGiven("weights initialization","Given values are not integers and thus can not represent of layer weights matrix.")
             elif(weights_dim == 2):#if given array has 2 dimensions, then it is assumed that it is weight array of Layer instance.
                 #to create layer, there needs to be information to represent at least 1 neuron with at least one weight (bias if one), i.e. weight array can not be empty.
                 if(weights.shape[0] >= 1 | weights.shape[1] >= 1 ):
-                    if(isRationalNumber(weights)):
+                    #only rational numbers can represent weight values in this implementation, so it needs to be verified if that;s the case and raise error if not.
+                    if(isRationalNumber(weights)):#if numbers are rational than they can be weights
+                        #assigning given weights to object instance property
                         self.weights_array= weights
-                    else:
+                    else:#if number are not rational, than error needs to be raised
                         raise NotSupportedInputGiven("weights initialization","Given values are not a rational numbers and thus can not be used as weight values.")
                 else:
-                    NotImplementedError
+                    raise NotSupportedInputGiven("weights initialization","Given array have insuffiecient information to represent weights of layer.")
             else:#array of incompatible size was given. Processing is not possible, so proper error should be thrown. TO DO: Implement proper error
-                raise NotImplementedError
+                raise NotSupportedArrayDimGiven("1,2")
         else:#input that is not compatible was given. Operation cannot proceed, so proper error should be thrown. TO DO: Implement proper error
-            raise NotImplementedError
+            raise NotSupportedInputGiven("weights initialization","Not supported data type given.")
         #activation function assignment 
         if (callable(activ_functions)):#if given variable is callable then there is high chance that's the wanted activation function. It is not ideal solution, but it is optimal. In this case only one activ function is given and it is interpreted as all neurons should have same activ function
             #list of length equal to number of neurons is created. Based on assumption all activation functions would be the same if only one activation function is given .
@@ -59,31 +61,31 @@ class Layer:
             #ready activ function list is passed to instance atrribute
             self.activ_functions = activ_functions_base
         elif(type(activ_functions) == list):#different activation function for each neuron in layer would posssible if given list of them (tool for customization). TO DO: implementation
-            #
+            #number of given activation functions should be equal to neurons in layer or be only one to be put (copy) as the same for all neurons
             num_activ_functions = len(activ_functions)
-            #
-            if(num_activ_functions == 1):
+            #based on number of elements in the list different initialization method is used (or error raised if uncompatible information was given)
+            if(num_activ_functions == 1):#if there is only one element, then it is assumed that it is activation function for all of neurons
                 #list of length equal to number of neurons is created. Based on assumption all activation functions would be the same if only one activation function is given .
                 activ_functions_base = [activ_functions[0]] * self.weights_array.shape[0]
                 #ready activ function list is passed to instance atrribute
                 self.activ_functions = activ_functions_base
-            elif(num_activ_functions == weights.ndim[0]):
-                #
+            elif(num_activ_functions == weights.ndim[0]):#number of activation function should match the number of neurons (or be single one to be the same for the whole layer) for proper initialization
+                #each activation function would be appended to this list
                 activ_functions_base = []
-                #
+                #each element of list needs to be tested if it is functiuon (same mechanism as before).
                 for iNeuron in range(num_activ_functions):
-                    #
-                    current_func = activ_functions[iNeuron]
-                    #
-                    if(callable(current_func)):
-                        activ_functions_base.append(current_func)
+                    #current element of the list is assigned to variable for better readability.
+                    element = activ_functions[iNeuron]
+                    #verification if element of list is a activ function is done.
+                    if(callable(element)):
+                        activ_functions_base.append(element)
                     else:
-                        raise NotImplementedError
+                        raise NotSupportedInputGiven("activation functions initialization","Given variable is not function")
                 self.activ_functions = activ_functions_base
-            else:
-                raise NotImplementedError
+            else:#if size of given list is uncompatible, then initialization is impossible and proper error should be thrown
+                raise NotSupportedInputGiven("activation functions initialization","Given activation functions number does not match number of neurons in layer")
         else:#if given variable is not an activation function, then class object can not be initialized due to lack (no activ function) of data. TO DO: implementing proper error
-            raise NotImplementedError
+            raise NotSupportedInputGiven("activation functions initialization","Not supported data type given.")
 #methods
     #simple input processing by network
     def forward(self,input):
@@ -101,12 +103,12 @@ class Layer:
                     input_format = input[:,np.newaxis]
                 elif(number_dimensions == 2):#given array might be not only array, but also row and column vector. If only vector is given, than it has to be in column vector form. To ensure proper form some verification and if necessery processing is done
                     input_format = getProperInputArray(input)
-                else:#if data is of dimensions that handling is not implement proper error should be thrown. TO DO: implement proper error
-                    raise NotImplementedError 
-            else:#if given data is not proper, the error should be thrown. TO DO: proper error.
-                raise NotImplementedError
-        else:#if given data is not in proper format, the error should be thrown. TO DO: proper error.
-            raise NotImplementedError
+                else:#if data is of dimensions that handling is not implement proper error should be thrown. 
+                    raise NotSupportedArrayDimGiven("1,2")
+            else:#if given data is not proper, the error should be thrown. 
+                raise NotSupportedInputGiven("input propagation","Given values are not a rational numbers and thus can not be used to get output from  layer neurons.")
+        else:#if given data is not in proper format, the error should be thrown. 
+            raise NotSupportedInputGiven("input propagation","Not supported data type given.")
         #bias input is added to input vector/array to account for bias, which is 0 weight
         input_ready = addBiasInput(input_format)
         #before proceeding with input propagation through layer it needs to be verified if input is compatible.
@@ -117,7 +119,7 @@ class Layer:
             a = activationLayer(z,activ_functions)
             #both matrix multiplication results (z) and activation results (a) are send out
             output = [z,a]
-        else:#if inproper input was given and operation cannot proceed proper error should be raised. TO DO: implement proper error
-            raise NotImplementedError
+        else:#if inproper input was given and operation cannot proceed and proper error should be raised. 
+            raise NotSupportedInputGiven("input propagation","Input does not match network, i.e. matrix multiplication cannot be done due to mismatch of dimensions.")
         #results are returned
         return output
