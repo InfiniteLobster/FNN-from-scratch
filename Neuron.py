@@ -61,7 +61,7 @@ class Neuron:
             else:#given variable is of unappropriate datatype. Error should be thrown. 
                 raise NotSupportedInputGiven("weights initialization","Given values are not a rational numbers and thus can not be used as weight values.")
         else:#given variable is of type for which object initialization is not implemented. Appropriate error sould be passed. 
-            raise NotSupportedInputGiven("weights initialization")
+            raise NotSupportedInputGiven("weights initialization","Not supported data type given.")
     #simple input processing by through neuron (single layer, single neuron ANN)
     def forward(self,input):
         #gettin instance attributes to separate variables for readability
@@ -70,7 +70,7 @@ class Neuron:
         #conversion of given input if it is list instead of np array (not always possible as numbers are needed)
         if(type(input) == list):
             try:
-                input = np.asanyarray(input, dtype = weight_vector.dtype)
+                input = np.asanyarray(input, dtype = weight_vector.dtype)#input should be in same format as weights to stay consistent with data types in calculations.
             except Exception as error_caught:
                 if(isinstance(error_caught,ValueError)):
                     raise NotSupportedInputGiven("input propagation","Values given in list are not numbers and thus can not be used as input to neuron.")
@@ -94,7 +94,7 @@ class Neuron:
             else:#if given data doesn't have rational numbers data, then error should be thrown as such input cannot be put through neuron. 
                 raise NotSupportedInputGiven("input propagation","Given values are not a rational numbers and thus can not be used to get output from neuron.")
         else:#if given data is not in proper format, the error should be thrown.
-            raise NotSupportedInputGiven("input propagation")
+            raise NotSupportedInputGiven("input propagation","Not supported data type given.")
         #before proceeding with input propagation through neuron it needs to be verified if input is compatible.
         if(weight_vector.shape[1] == input_ready.shape[0]):#if they are compatible for matrix multiplication than operation can proceed
             #input is multiplied by weights for forward pass (matrix multiplication)

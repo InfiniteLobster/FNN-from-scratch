@@ -28,7 +28,7 @@ def backwards(network, inputs, targets, loss_derivative):
     grad_a_L = loss_derivative(targets, a_L)
 
     # Compute derivative of activation for output layer
-    act_funcs_last = network.activ_functions_list[-1]
+    act_funcs_last = network.activ_functions_list_list[-1]
     activation_deriv_last = np.zeros_like(z_L)
 
     for i, act in enumerate(act_funcs_last):
@@ -72,7 +72,7 @@ def backwards(network, inputs, targets, loss_derivative):
         prev_z = z_values[layer_index]
 
         # Activation derivatives for previous layer
-        act_funcs_prev = network.activ_functions_list[layer_index - 1]
+        act_funcs_prev = network.activ_functions_list_list[layer_index - 1]
         activation_deriv_prev = np.zeros_like(prev_z)
 
         for i, act in enumerate(act_funcs_prev):

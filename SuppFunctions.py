@@ -75,11 +75,11 @@ def activationLayer(input,activ_functions):
     shapeInput = input.shape
     #
     output = np.empty(shapeInput)
-    #
+    #iterating through inputs
     for iInput in range(shapeInput[1]):
-        #
+        #getting current input
         input_current = input[:,iInput]
-        #
+        #for all neurons in input
         for iNeuron in range(input_current.shape[0]):
             #
             activ_function_current = activ_functions[iNeuron]
@@ -107,3 +107,29 @@ def clip_gradient(grad, threshold=1.0):
     if norm > threshold:
         grad = grad * (threshold / norm)
     return grad
+#
+def testInputFormat(base_list,network):
+    #inputs
+    inputTestList = base_list
+    inputTestVect1D = np.array(base_list)
+    inputTestVect2Drow = inputTestVect1D[np.newaxis,:] 
+    inputTestVect2Dcol = inputTestVect2Drow.T
+    inputTestArray = np.concatenate((inputTestVect2Dcol,inputTestVect2Dcol), axis = 1) 
+    #forward pass
+    o1 = network.forward(inputTestList)
+    o2 = network.forward(inputTestVect1D)
+    o3 = network.forward(inputTestVect2Drow)
+    o4 = network.forward(inputTestVect2Dcol)
+    o5 = network.forward(inputTestArray)
+    if(type(o1[0]) == list):#test network
+        #testlayer/neuron
+        if((o1[-1][1].all() == o2[-1][1].all()) & (o1[-1][1].all() == o3[-1][1].all()) & (o1[-1][1].all() == o4[-1][1].all()) & (o1[-1][1].all() == o5[-1][1].all())):
+            return True
+        else:
+            return False
+    else:
+        #testlayer/neuron
+        if((o1[1].all() == o2[1].all()) & (o1[1].all() == o3[1].all()) & (o1[1].all() == o4[1].all()) & (o1[1].all() == o5[1].all())):
+            return True
+        else:
+            return False
