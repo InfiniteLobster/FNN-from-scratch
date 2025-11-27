@@ -73,7 +73,6 @@ def addBiasInput(input):
 def activationLayer(input,activ_functions):
     #
     shapeInput = input.shape
-    k = len(activ_functions)
     #
     output = np.empty(shapeInput)
     #iterating through inputs
