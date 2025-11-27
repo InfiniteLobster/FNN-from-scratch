@@ -73,13 +73,14 @@ def addBiasInput(input):
 def activationLayer(input,activ_functions):
     #
     shapeInput = input.shape
+    k = len(activ_functions)
     #
     output = np.empty(shapeInput)
-    #
+    #iterating through inputs
     for iInput in range(shapeInput[1]):
-        #
+        #getting current input
         input_current = input[:,iInput]
-        #
+        #for all neurons in input
         for iNeuron in range(input_current.shape[0]):
             #
             activ_function_current = activ_functions[iNeuron]
@@ -121,8 +122,15 @@ def testInputFormat(base_list,network):
     o3 = network.forward(inputTestVect2Drow)
     o4 = network.forward(inputTestVect2Dcol)
     o5 = network.forward(inputTestArray)
-    #test
-    if((o1[1].all() == o2[1].all()) & (o1[1].all() == o3[1].all()) & (o1[1].all() == o4[1].all()) & (o1[1].all() == o5[1].all())):
-        return True
+    if(type(o1[0]) == list):#test network
+        #testlayer/neuron
+        if((o1[-1][1].all() == o2[-1][1].all()) & (o1[-1][1].all() == o3[-1][1].all()) & (o1[-1][1].all() == o4[-1][1].all()) & (o1[-1][1].all() == o5[-1][1].all())):
+            return True
+        else:
+            return False
     else:
-        return False
+        #testlayer/neuron
+        if((o1[1].all() == o2[1].all()) & (o1[1].all() == o3[1].all()) & (o1[1].all() == o4[1].all()) & (o1[1].all() == o5[1].all())):
+            return True
+        else:
+            return False

@@ -13,7 +13,7 @@ class Layer:
         #conversion of given weight input if it is list instead of np array (not always possible as numbers are needed)
         if(type(weights) == list):
             try:
-                weights = np.asanyarray(weights)#compared to Neuron class, the list can only represent dimensions, so it has to be in format for dimensions not weights (dtype = datatype_weights is missing here)
+                weights = np.array(weights)#compared to Neuron class, the list can only represent dimensions, so it has to be in format for dimensions not weights (dtype = datatype_weights is missing here)
             except Exception as error_caught:
                 if(isinstance(error_caught,ValueError)):
                     raise NotSupportedInputGiven("weights initialization","Values given in list are not numbers and thus can not be used as weight array dimensions.")#not being integers is caught in other section below. There is no need to repeat.
