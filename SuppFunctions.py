@@ -66,24 +66,25 @@ def addBiasInput(input):
     newInput[1:,:] = input
     #returning input with added bias input
     return newInput
-#
-def activationLayer(input,activ_functions):
-    #
+#this function puts matrix multiplication results (input propagation) through activation functions for a layer. As in this implementation each neuron in layer can have different activation function each neurons activation needs to be done separately
+def activationLayer(input,activ_functions_list):
+    #to create properly sized output variable (pre-allocation) information of input(output of matrix multiplication) shape is needed
     shapeInput = input.shape
-    #
+    #output variable is declared for pre-allocation
     output = np.empty(shapeInput)
-    #iterating through inputs
+    #iterating through inputs (this operation is implemented in loop for code readability and clarity contrary to putting whole np arrays throgh activation functiond))
     for iInput in range(shapeInput[1]):
         #getting current input
         input_current = input[:,iInput]
-        #for all neurons in input
+        #iterating through neurons in layer
         for iNeuron in range(input_current.shape[0]):
-            #
-            activ_function_current = activ_functions[iNeuron]
-            #
+            #getting activation function of current neuron
+            activ_function_current = activ_functions_list[iNeuron]
+            #puttign input through activation function
             output_current = activ_function_current(input_current[iNeuron])
-            #
+            #assignign neuron output to output variable
             output[iNeuron,iInput] = output_current
+    #returning the output
     return output
 #
 der_map = {
@@ -104,7 +105,7 @@ def clip_gradient(grad, threshold=1.0):
     if norm > threshold:
         grad = grad * (threshold / norm)
     return grad
-#
+#this function test given network with given input transformed for different possible input data formats. Essentially output for all input data formats should be the same and this is verified.
 def testInputFormat(base_list,network):
     #inputs
     inputTestList = base_list
@@ -126,7 +127,7 @@ def testInputFormat(base_list,network):
             return False
     else:
         #testlayer/neuron
-        if((o1[1].all() == o2[1].all()) & (o1[1].all() == o3[1].all()) & (o1[1].all() == o4[1].all()) & (o1[1].all() == o5[1].all())):
+        if((o1[1].all() == o2[1].all()) & (o1[1].all() == o3[1].all()) & (o1[1].all() == o4[1].all()) & (o1[1].all() == o5[1].all())):#in case of ANN only output of last layer is compared
             return True
         else:
             return False
