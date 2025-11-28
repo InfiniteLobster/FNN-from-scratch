@@ -87,6 +87,55 @@ def activationLayer(input,activ_functions_list):
     #returning the output
     return output
 #
+def derLoss(targets,a_output,loss_derivative):
+    #
+    shapeInput = a_output.shape
+    #
+    dL_dy_all = np.empty(shapeInput)
+    #
+    for iInput in range(shapeInput[1]):
+        #
+        y_col = targets[:,iInput]
+        a_col = a_output[:,iInput]
+        #
+        for iNeuron in range(y_col.shape[0]):
+            #
+            y = y_col[iNeuron]
+            a = a_col[iNeuron]
+            #
+            dL_dy = loss_derivative(y,a)
+            # 
+            dL_dy_all[iNeuron,iInput] = dL_dy
+    #returning the output
+    return dL_dy_all
+#
+def gradLoss(derPrev,z_output,activ_functions_list):
+    #
+    shapeInput = derPrev.shape
+    #
+    delta = np.empty(shapeInput)
+    #
+    for iInput in range(shapeInput[1]):
+        #
+        der_col = derPrev[:,iInput]
+        z_col = z_output[:,iInput]
+        #
+        for iNeuron in range(der_col.shape[0]):
+            #
+            der = der_col[iNeuron]
+            z = z_col[iNeuron]
+            #
+            activ_function = activ_functions_list[iNeuron]
+            activ_function_der = getDer(activ_function)
+            #
+            a_der = activ_function_der(z)
+            #
+            delta_neur = der * a_der
+            #
+            delta[iNeuron,iInput] = delta_neur
+    #
+    return delta
+#
 der_map = {
     identity: der_identity,
     sigmoid: der_sigmoid,
