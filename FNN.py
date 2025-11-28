@@ -9,7 +9,7 @@ class FNN:
 #self.activ_functions_list_list - this variable holds list of "list of activation function of neurons in layer" for all layers.
 
 #constructor
-    def __init__(self,weights,activ_functions,method_ini = "Zero", datatype_weights = "float64", random_lower_bound = - 1.0, random_upper_bound = 1.0):
+    def __init__(self,weights,activ_functions,method_ini = "Zero", datatype_weights = "float64", random_lower_bound = 0.0, random_upper_bound = 1.0, random_mean = 0.0, random_std = 1.0):
         #if given weight information is list of neuron numbers in each dimension than it needs to be converted into np array (for code uniformity).
         if(type(weights) == list):#it first need to be checked if given input is list
             #to initialize weights some information needs to be given. If given list is empty (so it has no information) proper error should be thrown.
@@ -38,15 +38,27 @@ class FNN:
                             #getting number of neurons in current layer
                             nNeurons = weights[iLayer+1]#as [0] layer corresponds to inpout layer, the information of hidden layers starts from [1], so the information retrieval is shifted by 1
                             #weights are initializaed by basic method
-                            weights_conversion = np.zeros([nNeurons,(nWeights+1)],dtype=datatype_weights)#bias is accounted for by adding 1 to number of weights.
+                            shape_ini = [nNeurons,(nWeights+1)]#bias is accounted for by adding 1 to number of weights.
                             #for each subsequent layer, the number of weights depends on number of neurons in previous layer, so its assignment needs to be adjusted
                             nWeights = nNeurons#assigned value is used in next iteration. Of course it is unused for output layer as there is no next layer. So, this assignment is redundant for last iteration, but it is cheaper to leave as it is, than to create if statment.
-                            #if method other than basic method (zero) was selected, than weights are initialized according to it
-                            match method_ini:#(TO DO: implementing other methods. Possible TO DO: different ini method for each layer)
-                                case "Random":# in the random initialization the weights values are generated randomly as real numbers between given bounds
-                                    weights_conversion = randomIni(weights_conversion,random_lower_bound,random_upper_bound)
+                            #weight array is initialized according to choosen method
+                            match method_ini:
+                                case "Zero":
+                                    weights_ini = zeroIni(shape_ini,datatype_weights)
+                                case "RandomUni":
+                                    weights_ini = randomIniUniform(shape_ini,datatype_weights, lower_bound= random_lower_bound, upper_bound= random_upper_bound)
+                                case "RandomNor":
+                                    weights_ini = randomIniNormal(shape_ini,datatype_weights, mean = random_mean, std = random_std)
+                                case "XavUni":
+                                    weights_ini = xavIniUniform(shape_ini,datatype_weights)
+                                case "XavNor":
+                                    weights_ini = xavIniNormal(shape_ini,datatype_weights)
+                                case "HeUni":
+                                    weights_ini = heIniUniform(shape_ini,datatype_weights)
+                                case "HeNor":
+                                    weights_ini = heIniNormal(shape_ini,datatype_weights)
                             #after initialization by chosen method, the layer is added to the list.
-                            weights_layers.append(weights_conversion)
+                            weights_layers.append(weights_ini)
                         #after initialization weights are assigned to object property
                         self.weights_list= weights_layers
                     else:

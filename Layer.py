@@ -9,7 +9,7 @@ class Layer:
 #self.activ_functions - this variable holds list of activation function of neurons in layer.
 
 #constructor
-    def __init__(self,weights,activ_functions,method_ini = "Zero", datatype_weights = "float64", random_lower_bound = 0.0, random_upper_bound = 1.0):
+    def __init__(self,weights,activ_functions,method_ini = "Zero", datatype_weights = "float64", random_lower_bound = 0.0, random_upper_bound = 1.0, random_mean = 0.0, random_std = 1.0):
         #conversion of given weight input if it is list instead of np array (not always possible as numbers are needed)
         if(type(weights) == list):
             try:
@@ -28,13 +28,25 @@ class Layer:
                         nNeurons = weights[0]#first number is assumed to be for layer size (number of neurons in layer)
                         nWeights = weights[1]#second number is assumed to be for number of weights in neurons of layer (bias is not counted)
                         #weights are initializaed by basic method
-                        weights_conversion = np.zeros([nNeurons,(nWeights+1)],dtype=datatype_weights)#1 is added to weights, because by convention given number does not include bias
-                        #if method other than basic method (zero) was selected, than weights are initialized according to it
-                        match method_ini:#(TO DO: implementing methods)
-                            case "Random":# in the random initialization the weights values are generated randomly as real numbers between given bounds
-                                weights_conversion = randomIni(weights_conversion,random_lower_bound,random_upper_bound)
+                        shape_ini = [nNeurons,(nWeights+1)]#1 is added to weights, because by convention given number does not include bias, which needs to be accounted during matrix initialization as it is part of weight matrix
+                        #weight array is initialized according to choosen method
+                        match method_ini:
+                            case "Zero":
+                                weights_ini = zeroIni(shape_ini,datatype_weights)
+                            case "RandomUni":
+                                weights_ini = randomIniUniform(shape_ini,datatype_weights, lower_bound= random_lower_bound, upper_bound= random_upper_bound)
+                            case "RandomNor":
+                                weights_ini = randomIniNormal(shape_ini,datatype_weights, mean = random_mean, std = random_std)
+                            case "XavUni":
+                                weights_ini = xavIniUniform(shape_ini,datatype_weights)
+                            case "XavNor":
+                                weights_ini = xavIniNormal(shape_ini,datatype_weights)
+                            case "HeUni":
+                                weights_ini = heIniUniform(shape_ini,datatype_weights)
+                            case "HeNor":
+                                weights_ini = heIniNormal(shape_ini,datatype_weights)
                         #after initialization weights are assigned to object property
-                        self.weights_array= weights_conversion
+                        self.weights_array= weights_ini
                     else:
                         raise NotSupportedInputGiven("weights initialization","In this implementation initialization by vector (1 dim) is only supported for dimensions to initialize. As there are only 2 dimensions to initialize layer any other are unsuitable and raise error due to ambiguity")
                 else:#if in given vector the numbers are not integers, then they cannot be interpreted as dimensions for initialization, so weight creation is impossible. TO DO: Proper error should be thrown
