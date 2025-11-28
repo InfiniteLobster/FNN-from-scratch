@@ -1,10 +1,6 @@
-
-
 import numpy as np
 from TrainingFunctions import backwards
 from LossFunctions import MeanSquaredErrorDerivative
-import SuppFunctions  # for optional gradient clipping
-
 
 # 1) Mini-batch Stochastic Gradient Descent
 def train_minibatch_sgd(network,
@@ -15,16 +11,19 @@ def train_minibatch_sgd(network,
                         batch_size,
                         loss_derivative=MeanSquaredErrorDerivative):
 
+    
+    # Here there is an extraction of the training samples
     n_samples = inputs.shape[1]
 
+    
     for epoch in range(epochs):
 
-        # Random permutation of indices to create random mini-batches
+        # Taking the dataset and creating a randomly shuffled dataset from it
         indices = np.random.permutation(n_samples)
 
         # Iterate over the dataset in chunks of size 'batch_size'
         for start in range(0, n_samples, batch_size):
-            # Compute the slice of indices for this mini-batch
+            # Creating the mini batches
             batch_idx = indices[start:start + batch_size]
 
             # Prepare a list of accumulated gradients, one array per layer.
@@ -56,9 +55,6 @@ def train_minibatch_sgd(network,
                 # Average gradient over the mini-batch
                 grad_avg = grad_acc[i] / batch_size_effective
 
-                # clip gradient to prevent exploding gradients (optional)
-                grad_avg = SuppFunctions.clip_gradient(grad_avg)
-
                 #Gradient descent update
                 network.weights_list[i] -= learning_rate * grad_avg
 
@@ -76,6 +72,8 @@ def train_minibatch_adam(network,
                          beta2=0.999,
                          epsilon=1e-8):
 
+   
+   # Here there is an extraction of the trining samples
     n_samples = inputs.shape[1]
 
     # Initialize first and second moment estimates for each layer's weights.
@@ -87,7 +85,7 @@ def train_minibatch_adam(network,
 
     for epoch in range(epochs):
 
-        # Shuffle indices for this epoch
+        # Shuffle indices 
         indices = np.random.permutation(n_samples)
 
         # Loop over mini-batches
@@ -119,8 +117,7 @@ def train_minibatch_adam(network,
                 # Average gradient over the mini-batch
                 g = grad_acc[i] / batch_size_effective
 
-                # clip to control exploding gradients (optional)
-                g = SuppFunctions.clip_gradient(g)
+                
 
                 
                 # Update biased first moment estimate (moving average of gradients)
