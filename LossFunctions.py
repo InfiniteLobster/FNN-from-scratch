@@ -1,4 +1,6 @@
 import numpy as np
+#this is .py file with loss functions and their derivatives
+
 
 # ================================================
 # Mean Squared Error (MSE)

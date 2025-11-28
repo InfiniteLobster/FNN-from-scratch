@@ -1,4 +1,7 @@
 import numpy as np
+#this is .py file with activation functions and their derivatives
+
+
 #identity
 def identity(x):
     return x

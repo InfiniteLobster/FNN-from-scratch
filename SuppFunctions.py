@@ -1,73 +1,70 @@
 import numpy as np
-from ActivFunctions import (
-    identity, der_identity,
-    sigmoid, der_sigmoid,
-    tanh, der_tanh,
-    relu, der_relu,
-    leaky_relu, der_leaky_relu,
-    softmax, der_softmax
-)
+from ActivFunctions import *
+from ErrorClasses import *
+#this is .py file with supporting functions 
 
-der_map = {
-    identity: der_identity,
-    sigmoid: der_sigmoid,
-    tanh: der_tanh,
-    relu: der_relu,
-    leaky_relu: der_leaky_relu,
-    softmax: der_softmax
-}
 
-#
+#this function checks if np array is of desired data type and if not changes it into desired data type
 def ensureDtypeNpArray(array_in,data_type):
-    #
-    if(array_in.dtype == data_type):
+    #verification of dtype
+    if(array_in.dtype == data_type):#if data type is as desired, then input array does not change
         array_out = array_in
-    else:
-        array_out = array_in.astype(data_type)
-    #
+    else:#if not the same, then it is different and needs to be changed
+        array_out = np.asarray(array_in,data_type)
+    #output out
     return array_out
-#
+#this function evaluates if data type of given array is composed of rational numbers
 def isRationalNumber(array):
+    #verification of data type is rational
     answer = ((np.issubdtype(array.dtype, np.integer)) | (np.issubdtype(array.dtype, np.floating)))
+    #output out
     return answer
-#
+#this function verifies if given 2D array is row vector
 def isRowVector(array):
+    #getting shape of array
     shape = array.shape
+    #checking if requirments for row vector are met, i.e only one row and at least one column (second argument is more of verification if given array was 2D)
     answer = (shape[0] == 1 )& (shape[1] >= 1)
+    #returning results
     return answer
-#
+#this function verifies if given 2D array is column vector
 def isColVector(array):
+    #getting shape of array
     shape = array.shape
+    #checking if requirments for column vector are met, i.e only one column and at least one row (first argument is more of verification if given array was 2D)
     answer = (shape[0] >= 1) & (shape[1] == 1)
+    #returning results
     return answer
-#
+#this function verifies if given 2D array is array (basically it is checke dif it is empty in any of dimensions)
 def isArray(array):
+    #getting shape of array
     shape = array.shape
+    #checking if requirments for array are met, i.e. having informations in 2 dimensions
     answer = (shape[0] >= 1) & (shape[1] >= 1)
     return answer
-#
+#this function ensures that given input would be suitable for input propagation through ANN
 def getProperInputArray(array):
     #for proper representation the input, the input vector needs to be a column vector or array. It is checked if that's the case and changed if not.
-    if(isRowVector(array)):
+    if(isRowVector(array)):#if it is vector input, then it has to be in column format. So, if it is in row format than it has to be transposed.
         input_format = array.T
     elif(isColVector(array)):
         input_format = array
     elif(isArray(array)):
         input_format = array
-    else:#if none of above true, then given variable is in non implemented format. Appropriate error must be passed to user. TO DO: error implementation
-        raise NotImplementedError
+    else:#if none of above true, then given variable is in non implemented format. Appropriate error must be passed to user. 
+        raise NotSupportedInputGiven("input propagation","Given input is in dimensions for which input propagation is not implemented")
     #input is returned in proper format
     return input_format
-#
+#this function adds input values to represent bias (1s) into given input
 def addBiasInput(input):
-    #
+    #getting shape of given input to know how big holding variable should be initialized
     shapeInput = input.shape
-    #
-    newInput = np.empty([(shapeInput[0] + 1),shapeInput[1]],dtype = input.dtype)
-    #
+    #initializing holding variable for assignment of inputs
+    newInput = np.empty([(shapeInput[0] + 1),shapeInput[1]],dtype = input.dtype)#as single input is assumed to be in column format, than additional row has to be added for bias input
+    #assigning values to proper places, i.e. bias inputs as first elements as biases are [0] elements in neuron weights
     newInput[0,:] = 1.0
     newInput[1:,:] = input
-    #
+    #returning input with added bias input
     return newInput
 #
 def activationLayer(input,activ_functions):
