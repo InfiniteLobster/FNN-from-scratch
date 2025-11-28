@@ -120,7 +120,7 @@ class FNN:
                         activ_functions_base = [activ_functions_info[0]] * self.weights_list[iLayer].shape[0]
                         activ_functions_list_list.append(activ_functions_base)
                     #activation function is assigned for last layer.
-                    activ_functions_base = [activ_functions_info[1]] * self.weights_list[iLayer].shape[0]
+                    activ_functions_base = [activ_functions_info[1]] * self.weights_list[-1].shape[0]#as it is last layer last element of self.weights_list is taken 
                     activ_functions_list_list.append(activ_functions_base)
                     #ready activ function list is passed to instance atrribute
                     self.activ_functions_list_list = activ_functions_list_list
@@ -233,7 +233,7 @@ class FNN:
     #backward propagation of error through the network
     #To move here probably
     #FNN deconstruction into Layer class objects
-    def decomposeIntoLayer(self):
+    def decomposeIntoLayers(self):
         #getting properties of FNN object into variables for code readability
         weights_list = self.weights_list
         activ_functions_list_list = self.activ_functions_list_list
@@ -255,7 +255,7 @@ class FNN:
     #FNN deconstruction into lists of Neuron class objects
     def decomposeIntoNeurons(self):
         #decomposing FNN first into Layer objects
-        layers_list = self.decomposeIntoLayer()
+        layers_list = self.decomposeIntoLayers()
         #getting number of layer objects to know how long loop should go
         num_layers = len(layers_list)
         #creating list variable to append results of each loop

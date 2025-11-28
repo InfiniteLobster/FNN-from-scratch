@@ -1,4 +1,5 @@
 import numpy as np
+from Neuron import *
 from InitFunctions import  *
 from SuppFunctions import  *
 from ErrorClasses import *
@@ -96,7 +97,7 @@ class Layer:
                 self.activ_functions_list = activ_functions_base
             else:#if size of given list is uncompatible, then initialization is impossible and proper error should be thrown
                 raise NotSupportedInputGiven("activation functions initialization","Given activation functions number does not match number of neurons in layer")
-        else:#if given variable is not an activation function, then class object can not be initialized due to lack (no activ function) of data. TO DO: implementing proper error
+        else:#if given variable is not an activation function, then class object can not be initialized due to lack (no activ function) of data. 
             raise NotSupportedInputGiven("activation functions initialization","Not supported data type given.")
 #methods
     #simple input processing by network
@@ -159,7 +160,7 @@ class Layer:
             weights_vector = weights_array[iNeuron,:]
             activ_function = activ_functions_list[iNeuron]
             #creating new Layer object
-            neuron = Layer(weights_vector,activ_function)
+            neuron = Neuron(weights_vector,activ_function)
             #adding results of current loop to the list
             neurons_list.append(neuron)
         #returning list with results
