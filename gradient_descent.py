@@ -3,7 +3,6 @@
 import numpy as np
 from TrainingFunctions import backwards
 from LossFunctions import MeanSquaredErrorDerivative
-import SuppFunctions  # for optional gradient clipping
 
 
 # 1) Mini-batch Stochastic Gradient Descent
@@ -55,9 +54,6 @@ def train_minibatch_sgd(network,
             for i in range(len(network.weights_list)):
                 # Average gradient over the mini-batch
                 grad_avg = grad_acc[i] / batch_size_effective
-
-                # clip gradient to prevent exploding gradients (optional)
-                grad_avg = SuppFunctions.clip_gradient(grad_avg)
 
                 #Gradient descent update
                 network.weights_list[i] -= learning_rate * grad_avg
@@ -119,8 +115,7 @@ def train_minibatch_adam(network,
                 # Average gradient over the mini-batch
                 g = grad_acc[i] / batch_size_effective
 
-                # clip to control exploding gradients (optional)
-                g = SuppFunctions.clip_gradient(g)
+                
 
                 
                 # Update biased first moment estimate (moving average of gradients)
