@@ -10,7 +10,7 @@ class FNN:
 #self.activ_functions_list_list - this variable holds list of "list of activation function of neurons in layer" for all layers.
 
 #constructor
-    def __init__(self,weights_info,activ_functions_info,method_ini = "Zero", datatype_weights = "float64", random_lower_bound = 0.0, random_upper_bound = 1.0, random_mean = 0.0, random_std = 1.0):
+    def __init__(self,weights_info,activ_functions_info,method_ini = "Zero", datatype_weights = "float64", random_lower_bound = -1.0, random_upper_bound = 1.0, random_mean = 0.0, random_std = 1.0):
         #if given weight information is list of neuron numbers in each dimension than it needs to be converted into np array (for code uniformity).
         if(type(weights_info) == list):#it first need to be checked if given input is list
             #to initialize weights some information needs to be given. If given list is empty (so it has no information) proper error should be thrown.
@@ -231,7 +231,54 @@ class FNN:
         #results are returned
         return output
     #backward propagation of error through the network
-    #To move here probably
+    def backward(self, z_values, a_values, targets, loss_derivative):
+        #getting properties of FNN object into variables for code readability
+        weights_list = self.weights_list
+        activ_functions_list_list = self.activ_functions_list_list
+        #getting number of layers to know how long loop should go
+        num_layers = len(weights_list)
+        #creating hold variable for weight gradients
+        grad_W = []
+        #start of backpropagation from output layer by getting its parameters
+        a_output  = a_values[-1]
+        z_output = z_values[-1]
+        activ_functions_list = activ_functions_list_list[-1]
+        #getting derivative of loss for output layer
+        if(a_output.shape == targets.shape):
+            dL_dy = derLoss(targets,a_output,loss_derivative)
+        else:#if shapes does not match, than given data is not correct, backpropagation can not proceed and proper error should be thrown.
+            raise NotSupportedInputGiven("backpropagation","Network output and ground truth does not match")
+        #gradient of loss to the pre-activ
+        delta = gradLoss(dL_dy,z_output,activ_functions_list)
+        #propagating loss through network
+        for layer_index in reversed(range(num_layers)):
+            #getting input to current layer
+            a_in = a_values[layer_index]#due to starting in reverse from range the index of current layer is shifted as +1 (it would be normal if input to network was not added as first elements of z and a), so to reach previous layer 'layer_index' is used, not -1 as previous +1 is accounted for and they cancel each other
+            #adjusting to bias
+            a_in_adj = addBiasInput(a_in)
+            #calculating gradient of the loss with the respect to the weights
+            dW = delta @ a_in_adj.T#a_in_adj is transposed for result to have shape of weight array -> as dW should have
+            #adding current layer dW to the output list 
+            grad_W.append(dW)
+            #in the case of last layer (first in network) there is no layer to backpropagate to, so next step is unneeded for it
+            if(layer_index>0):
+                #to proceed weight array of current network is needed
+                weight_array = weights_list[layer_index]#this is a different case than 'a_in' as 'layer_index' corresponds to layer in weights_list, so there is no adjustment by definition
+                weight_array_nobias = weight_array[:,1:]
+                #additionally to proceed with backpropagation, activation functions of previous layer are needed
+                activ_functions_list_prev = activ_functions_list_list[layer_index-1]#same as with 'weight_array', indexes matches, so to get parameter from previous layer -1 is applied in indexing
+                #pre-activation
+                z_prev = z_values[layer_index]#same case as with 'a_in'
+                #first previous delta needs to be multiplied by weight matrix
+                delta_prot = weight_array_nobias.T @ delta 
+                #the next element of getting delta is to multiply it through activa function derivatives
+                delta_prev = gradLoss(delta_prot,z_prev,activ_functions_list_prev) 
+                #new delta was calculated,so it can be assigned to variable, so it can be used in next iteration
+                delta = delta_prev
+        #reversing dW list for proper representation(last layer as last element)
+        grad_W_out = grad_W[::-1]
+        #returning output of backpropagation
+        return grad_W_out
     #FNN deconstruction into Layer class objects
     def decomposeIntoLayers(self):
         #getting properties of FNN object into variables for code readability
