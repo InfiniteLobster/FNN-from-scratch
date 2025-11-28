@@ -1,4 +1,5 @@
 import numpy as np
+from Layer import *
 from InitFunctions import  *
 from SuppFunctions import  *
 from ErrorClasses import *
@@ -9,44 +10,56 @@ class FNN:
 #self.activ_functions_list_list - this variable holds list of "list of activation function of neurons in layer" for all layers.
 
 #constructor
-    def __init__(self,weights,activ_functions,method_ini = "Zero", datatype_weights = "float64", random_lower_bound = - 1.0, random_upper_bound = 1.0):
+    def __init__(self,weights_info,activ_functions_info,method_ini = "Zero", datatype_weights = "float64", random_lower_bound = 0.0, random_upper_bound = 1.0, random_mean = 0.0, random_std = 1.0):
         #if given weight information is list of neuron numbers in each dimension than it needs to be converted into np array (for code uniformity).
-        if(type(weights) == list):#it first need to be checked if given input is list
+        if(type(weights_info) == list):#it first need to be checked if given input is list
             #to initialize weights some information needs to be given. If given list is empty (so it has no information) proper error should be thrown.
-            if(len(weights) == 0):
+            if(len(weights_info) == 0):
                 raise NotSupportedInputGiven("weights initialization","Given list is empty")
             #only integers can represent number of nurons in each layer. For this reason it needs to be verified if that's the case. If not proper error should be thrown
-            if(all(isinstance(weight, int) for weight in weights)):#now it is checked if it is list of integer values (not np arrays like with other initialization method)
+            if(all(isinstance(weight, int) for weight in weights_info)):#now it is checked if it is list of integer values (not np arrays like with other initialization method)
                 try:
-                    weights = np.array(weights)#compared to Neuron class, the list can only represent number of neurons (integers), so it has to be in format for dimensions not weights (floats). (dtype = datatype_weights is missing here)
+                    weights_info = np.array(weights_info)#compared to Neuron class, the list can only represent number of neurons (integers), so it has to be in format for dimensions not weights (floats). (dtype = datatype_weights is missing here)
                 except Exception as error_caught:#if value error is caught, then no-standard error message should be given for clarity.
                     if(isinstance(error_caught,ValueError)):
                         raise NotSupportedInputGiven("weights initialization","Values given in list are not integer numbers and thus can not be used as neuron number.")
                     #if other error than value error is caight, then it should thrown with its message.
                     raise error_caught
         #weights assignment
-        if(type(weights) == np.ndarray):#based on input types the weight assignment would process differently, so it is split by ifelse construct
-            if(weights.ndim == 1):#if vector is given then it is assumed that it is for weight initialization by number of neurons in each layer information
-                if(np.issubdtype(weights.dtype, np.integer)):#numbers in vector needs to be integers to represnt dimensions of layer and neurons in it
-                    if(weights.size > 1):#you need at least 2 layers counting input to create smallest network by initialization. The reason for that is how each layer connects, i.e. the number of neurons in previous layer needs to match number of weights in next, so to create weight array for first hidden layer, the input layer infromation is needed (despite input layer not being represented in weight list in this implementation)
-                        nWeights = weights[0]#first number is assumed to be for number of neurons in input layers
-                        nLayers = (len(weights) - 1)#the number of layers to be initialized is smaller by 1. It is so, because input layer is not represented by weights in this implementation and thus it doesn't have to be initialized
+        if(type(weights_info) == np.ndarray):#based on input types the weight assignment would process differently, so it is split by ifelse construct
+            if(weights_info.ndim == 1):#if vector is given then it is assumed that it is for weight initialization by number of neurons in each layer information
+                if(np.issubdtype(weights_info.dtype, np.integer)):#numbers in vector needs to be integers to represnt dimensions of layer and neurons in it
+                    if(weights_info.size > 1):#you need at least 2 layers counting input to create smallest network by initialization. The reason for that is how each layer connects, i.e. the number of neurons in previous layer needs to match number of weights in next, so to create weight array for first hidden layer, the input layer infromation is needed (despite input layer not being represented in weight list in this implementation)
+                        nWeights = weights_info[0]#first number is assumed to be for number of neurons in input layers
+                        nLayers = (len(weights_info) - 1)#the number of layers to be initialized is smaller by 1. It is so, because input layer is not represented by weights in this implementation and thus it doesn't have to be initialized
                         #list to hold 2D weight arrays of layers is declared for proper assignment in loop.
                         weights_layers = []
                         #to initialize network, all layers (except input) needs to be initialized separately to ensure that it is done properly.
                         for iLayer in range(nLayers):
                             #getting number of neurons in current layer
-                            nNeurons = weights[iLayer+1]#as [0] layer corresponds to inpout layer, the information of hidden layers starts from [1], so the information retrieval is shifted by 1
+                            nNeurons = weights_info[iLayer+1]#as [0] layer corresponds to inpout layer, the information of hidden layers starts from [1], so the information retrieval is shifted by 1
                             #weights are initializaed by basic method
-                            weights_conversion = np.zeros([nNeurons,(nWeights+1)],dtype=datatype_weights)#bias is accounted for by adding 1 to number of weights.
+                            shape_ini = [nNeurons,(nWeights+1)]#bias is accounted for by adding 1 to number of weights.
                             #for each subsequent layer, the number of weights depends on number of neurons in previous layer, so its assignment needs to be adjusted
                             nWeights = nNeurons#assigned value is used in next iteration. Of course it is unused for output layer as there is no next layer. So, this assignment is redundant for last iteration, but it is cheaper to leave as it is, than to create if statment.
-                            #if method other than basic method (zero) was selected, than weights are initialized according to it
-                            match method_ini:#(TO DO: implementing other methods. Possible TO DO: different ini method for each layer)
-                                case "Random":# in the random initialization the weights values are generated randomly as real numbers between given bounds
-                                    weights_conversion = randomIni(weights_conversion,random_lower_bound,random_upper_bound)
+                            #weight array is initialized according to choosen method
+                            match method_ini:
+                                case "Zero":
+                                    weights_ini = zeroIni(shape_ini,datatype_weights)
+                                case "RandomUni":
+                                    weights_ini = randomIniUniform(shape_ini,datatype_weights, lower_bound= random_lower_bound, upper_bound= random_upper_bound)
+                                case "RandomNor":
+                                    weights_ini = randomIniNormal(shape_ini,datatype_weights, mean = random_mean, std = random_std)
+                                case "XavUni":
+                                    weights_ini = xavIniUniform(shape_ini,datatype_weights)
+                                case "XavNor":
+                                    weights_ini = xavIniNormal(shape_ini,datatype_weights)
+                                case "HeUni":
+                                    weights_ini = heIniUniform(shape_ini,datatype_weights)
+                                case "HeNor":
+                                    weights_ini = heIniNormal(shape_ini,datatype_weights)
                             #after initialization by chosen method, the layer is added to the list.
-                            weights_layers.append(weights_conversion)
+                            weights_layers.append(weights_ini)
                         #after initialization weights are assigned to object property
                         self.weights_list= weights_layers
                     else:
@@ -55,15 +68,15 @@ class FNN:
                     raise NotSupportedInputGiven("weights initialization","Given values in vector must be integers to properly represent number of neurons in layers")
             else:#array of incompatible size was given. Processing is not possible, so proper error should be thrown. 
                 raise NotSupportedArrayDimGiven("1")
-        elif(type(weights) == list):#in this case network is initialized by taking all weight values from given information.
+        elif(type(weights_info) == list):#in this case network is initialized by taking all weight values from given information.
             #first it is verified if in all elements of list there are arrays representing layers
-            if(all(isinstance(weight, np.ndarray) for weight in weights)):#all elements of the list must be np arrays to represent weight arrays of each layer
+            if(all(isinstance(weight, np.ndarray) for weight in weights_info)):#all elements of the list must be np arrays to represent weight arrays of each layer
                 #list to hold 2D weight arrays of layers is declared for proper assignment in loop.
                 weights_layers = []
                 #to initialize network weight layers, all layers needs to be initialize separately to ensure that it is done properly (verification if dimensions match so that input propagation is possible).
-                for iLayer in range(len(weights)):
+                for iLayer in range(len(weights_info)):
                     #weight array is assigned to variable for code readability
-                    weights_array = weights[iLayer]#contrary to previous initialization method, here there is no need to include information about input layer as number of weights is already known (although it doesn't mean thath it is correct, so it is verified in next steps). 
+                    weights_array = weights_info[iLayer]#contrary to previous initialization method, here there is no need to include information about input layer as number of weights is already known (although it doesn't mean thath it is correct, so it is verified in next steps). 
                     if(iLayer>0):#for all, but first layer, it needs to be checked if given weight arrays allow the input propagation through network. If not, then proper error should be thrown
                         #it is verified if number of neurons for previous layer matches number of weights for current layer
                         if(weights_array.shape[1] == (weights_layers[-1].shape[0] + 1)):#previous layer would always be last element in list. Number of rows shape[0] corresponds to number of neurons (+1 is added as accounting for bias term) and columns shape[1] corresponds to number of weights. There is no need to check empty scenario specifically here, as with first layer case, because there is no possibility at this point of zero weight shape in previous layer (first layer would throw error and possibility of proceeding (becoming previous layer) with zero weight shape is discarded here with shape comparision(can not be true if there is no possibility of 0 in previous layer)).
@@ -87,27 +100,27 @@ class FNN:
         else:#input that is not compatible was given. Operation cannot proceed, so proper error should be thrown.
             raise NotSupportedInputGiven("weights initialization","Not supported data type given.")
         #activation function assignment 
-        if (callable(activ_functions)):#if only single activation function is given, then it needs to be converted into single element list for code unification.
+        if (callable(activ_functions_info)):#if only single activation function is given, then it needs to be converted into single element list for code unification.
             #given value creates one element list with itself
-            activ_functions = [activ_functions]
-        if(type(activ_functions) == list):#activation function list initialization always starts from list. 
+            activ_functions_info = [activ_functions_info]
+        if(type(activ_functions_info) == list):#activation function list initialization always starts from list. 
             #if there are only 2 elements some special case initialization can occur. So, such case must be verified and proceed properly.
-            if(len(activ_functions) == 2):
+            if(len(activ_functions_info) == 2):
                 #if all elements of the list are lists (assumed to be lists of activation layers for 2 layer network), then standard initialization should be done.
-                if(all(isinstance(activ_function_list, list) for activ_function_list in activ_functions)):
+                if(all(isinstance(activ_function_list, list) for activ_function_list in activ_functions_info)):
                     #setting proper value for flag variable
                     standardImplement = True
-                elif(all(callable(activ_function) for activ_function in activ_functions)):#if two elements are functions (assumed to be activation functions), then special initialization occurs, where first activation function is used for all hidden layers (and neurons in them), but output layer, which uses second activation function
+                elif(all(callable(activ_function) for activ_function in activ_functions_info)):#if two elements are functions (assumed to be activation functions), then special initialization occurs, where first activation function is used for all hidden layers (and neurons in them), but output layer, which uses second activation function
                     #setting proper value for flag variable (it is only done for principle as false values for this var are never used/compared)
                     standardImplement = False
                     #list to hold all lists of layer activation function is declared to hold initialization results for each layer and then be passed as whole.
                     activ_functions_list_list = []
                     #initialization goes through all layers, but last(output layer)
                     for iLayer in range(len(self.weights_list) - 1):
-                        activ_functions_base = [activ_functions[0]] * self.weights_list[iLayer].shape[0]
+                        activ_functions_base = [activ_functions_info[0]] * self.weights_list[iLayer].shape[0]
                         activ_functions_list_list.append(activ_functions_base)
                     #activation function is assigned for last layer.
-                    activ_functions_base = [activ_functions[1]] * self.weights_list[iLayer].shape[0]
+                    activ_functions_base = [activ_functions_info[1]] * self.weights_list[-1].shape[0]#as it is last layer last element of self.weights_list is taken 
                     activ_functions_list_list.append(activ_functions_base)
                     #ready activ function list is passed to instance atrribute
                     self.activ_functions_list_list = activ_functions_list_list
@@ -119,37 +132,37 @@ class FNN:
             #if special case initialization did not occur than standard (assumed to be the most commonly used) would proceed
             if(standardImplement == True):
                 #based on input varaible properties initialization would proceed differently
-                if((len(activ_functions) == 1 )&(callable(activ_functions[0]))):#if given list has only one element and it is function, than it is assumed that the same activation function should be used by all neruons in the network
+                if((len(activ_functions_info) == 1 )&(callable(activ_functions_info[0]))):#if given list has only one element and it is function, than it is assumed that the same activation function should be used by all neruons in the network
                     #list to hold all lists of layer activation function is declared to hold initialization results for each layer and then be passed as whole.
                     activ_functions_list_list = []
                     #initialization goes through all layers
                     for iLayer in range(len(self.weights_list)):
-                        activ_functions_base = activ_functions * self.weights_list[iLayer].shape[0]
+                        activ_functions_base = activ_functions_info * self.weights_list[iLayer].shape[0]
                         activ_functions_list_list.append(activ_functions_base)
                     #ready activ function list is passed to instance atrribute
                     self.activ_functions_list_list = activ_functions_list_list
-                elif((len(activ_functions)) == (len(self.weights_list))):#it first needs to be verified if there is enough information for each layer
+                elif((len(activ_functions_info)) == (len(self.weights_list))):#it first needs to be verified if there is enough information for each layer
                     #based on informationt ype in given list, initialization proceeds differently, so it is verified how exactly it should proceed.
-                    if(all(isinstance(activ_function_list, list) for activ_function_list in activ_functions)):#if all elements of the given list are lists (to be verified if lists of functions at later step) than initialization by assignment can proceed
+                    if(all(isinstance(activ_function_list, list) for activ_function_list in activ_functions_info)):#if all elements of the given list are lists (to be verified if lists of functions at later step) than initialization by assignment can proceed
                         #list to hold all lists of layer activation function is declared to hold initialization results for each layer and then be passed as whole.
                         activ_functions_list_list = []
                         #assignment goes through all layers
-                        for iLayer in range(len(activ_functions)):
+                        for iLayer in range(len(activ_functions_info)):
                             #gettign current activation function list into variable for code readability
-                            activ_functions_list = activ_functions[iLayer]
+                            activ_functions_list = activ_functions_info[iLayer]
                             #it needs to be verified if all elements of activation function list are activation functions and if number of activation function matches number of neurons in layer 
-                            if((self.weights_list[iLayer].shape[0] == len(activ_functions_list)) & (all(callable(activ_function) for activ_function in activ_functions[iLayer]))):
+                            if((self.weights_list[iLayer].shape[0] == len(activ_functions_list)) & (all(callable(activ_function) for activ_function in activ_functions_info[iLayer]))):
                                 #if everything is as it should be, then assignment proceeds
                                 activ_functions_list_list.append(activ_functions_list)
                             else:#if given input does not fit criteria, then proper error should be thrown.
                                 raise NotSupportedInputGiven("activation functions initialization","There is missmatch between number of neurons and activation functions in layer {iLayer} or one(or more) given activation function is not a function")
                         self.activ_functions_list_list = activ_functions_list_list
-                    elif(all(callable(activ_function) for activ_function in activ_functions)):#if all elements of list are functions (assumed to be activation functions) than assigment by initialization (same activ function for all neurons in layer) proceeds
+                    elif(all(callable(activ_function) for activ_function in activ_functions_info)):#if all elements of list are functions (assumed to be activation functions) than assigment by initialization (same activ function for all neurons in layer) proceeds
                         #list to hold all lists of layer activation function is declared to hold initialization results for each layer and then be passed as whole.
                         activ_functions_list_list = []
                         #initialization goes through all layers
                         for iLayer in range(len(self.weights_list)):
-                            activ_functions_base = [activ_functions[iLayer]] * self.weights_list[iLayer].shape[0]
+                            activ_functions_base = [activ_functions_info[iLayer]] * self.weights_list[iLayer].shape[0]
                             activ_functions_list_list.append(activ_functions_base)
                         #ready activ function list is passed to instance atrribute
                         self.activ_functions_list_list = activ_functions_list_list
@@ -217,3 +230,43 @@ class FNN:
         output = [z,a]
         #results are returned
         return output
+    #backward propagation of error through the network
+    #To move here probably
+    #FNN deconstruction into Layer class objects
+    def decomposeIntoLayers(self):
+        #getting properties of FNN object into variables for code readability
+        weights_list = self.weights_list
+        activ_functions_list_list = self.activ_functions_list_list
+        #getting number of layers to know how long loop should go
+        num_layers = len(weights_list)
+        #creating list variable to append results of each loop
+        layers_list = []
+        #iterating through layers of FNN to decompose each into Layer object
+        for iLayer in range(num_layers):
+            #getting current layer properties
+            weights_array = weights_list[iLayer]
+            activ_functions_list = activ_functions_list_list[iLayer]
+            #creating new Layer object
+            layer = Layer(weights_array,activ_functions_list)
+            #adding results of current loop to the list
+            layers_list.append(layer)
+        #returning list with results
+        return layers_list
+    #FNN deconstruction into lists of Neuron class objects
+    def decomposeIntoNeurons(self):
+        #decomposing FNN first into Layer objects
+        layers_list = self.decomposeIntoLayers()
+        #getting number of layer objects to know how long loop should go
+        num_layers = len(layers_list)
+        #creating list variable to append results of each loop
+        neurons_list_list = []
+        #iterating through Layer objects to decompose each into Neuron objects
+        for iLayer in range(num_layers):
+            #getting current Layer object
+            layer = layers_list[iLayer]
+            #decomposing Layer object into Neuron objects list
+            neurons_list = layer.decomposeIntoNeurons()
+            #adding results of current loop to the list
+            neurons_list_list.append(neurons_list)
+        #returning list with results
+        return neurons_list_list
