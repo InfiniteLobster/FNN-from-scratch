@@ -72,35 +72,15 @@ def activationLayer(input,activ_functions_list):
     shapeInput = input.shape
     #output variable is declared for pre-allocation
     output = np.empty(shapeInput)
-    #iterating through inputs (this operation is implemented in loop for code readability and clarity contrary to putting whole np arrays throgh activation functiond))
-    for iInput in range(shapeInput[1]):#there 
-        #getting current input
-        input_current = input[:,iInput]
-        #iterating through neurons in layer
-        for iNeuron in range(input_current.shape[0]):
-            #getting activation function of current neuron
-            activ_function_current = activ_functions_list[iNeuron]
-            #puttign input through activation function
-            output_current = activ_function_current(input_current[iNeuron])
-            #assignign neuron output to output variable
-            output[iNeuron,iInput] = output_current
-    #returning the output
-    return output
-#
-def activationLayer_vector(input,activ_function):
-    #to create properly sized output variable (pre-allocation) information of input(output of matrix multiplication) shape is needed
-    shapeInput = input.shape
-    #output variable is declared for pre-allocation
-    output = np.empty(shapeInput)
-    #iterating through inputs (this operation is implemented in loop for code readability and clarity contrary to putting whole np arrays throgh activation functiond))
-    for iInput in range(shapeInput[1]):
-        #getting current input
-        input_current = input[:,iInput]
+    for iNeuron in range(input.shape[0]):
+        #selecting input for current neuron (row vector of current neuron)
+        input_current = input[iNeuron,:]
+        #getting activation function of current neuron
+        activ_function_current = activ_functions_list[iNeuron]
         #puttign input through activation function
-        output_current = activ_function(input_current)
+        output_current = activ_function_current(input_current)
         #assignign neuron output to output variable
-        output[:,iInput] = output_current
-        #iterating through neurons in layer
+        output[iNeuron,:] = output_current
     #returning the output
     return output
 #
@@ -131,6 +111,25 @@ def derLoss_vector(targets,a_output,loss_derivative):
     dL_dy = loss_derivative(targets,a_output)
     #returning the output
     return dL_dy
+#
+def getDelta(der_prev,z,activ_functions_list):
+
+    if(all((activ_function.__code__.co_code == activ_functions_list[0].__code__.co_code) for activ_function in activ_functions_list)):
+            #
+            if(activ_functions_list[0].__code__.co_code == softmax.__code__.co_code):
+                activ_function = softmax_vec
+            else:
+                activ_function = activ_functions_list[0]
+            #
+            activ_function_der = getDer(activ_function)
+            #
+            a_der = activ_function_der(z)
+            #
+            delta = der_prev * a_der
+    else:#
+        #
+        delta = gradLoss(der_prev,z,activ_functions_list) 
+    return delta
 #
 def gradLoss(derPrev,z_output,activ_functions_list):
     #

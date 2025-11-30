@@ -43,7 +43,7 @@ def softmax(x):
 def der_softmax(x):
     return 0
 
-#Softmax (vector input)
+#Softmax (vector/array input)
 def softmax_vec(x):
     """
     Softmax supports vector or column-vector input.
@@ -59,5 +59,5 @@ def der_softmax_vec(x):
     Full Jacobian is layer-dependent; usually combined with cross-entropy.
     Here we return the element-wise derivative: s*(1-s).
     """
-    s = softmax(x)
+    s = softmax_vec(x)
     return s * (1 - s)

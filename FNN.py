@@ -220,14 +220,14 @@ class FNN:
                 #input is multiplied by weights for forward pass (matrix multiplication)
                 matrix_multi = weights_array @ input_ready
                 #in this implementatation neurons in layer can have different activation function. Activation is calculated differently when layer has the same activation function for all neurons and when they are different. For this reason the case should be distinguished and process differently.
-                if(all((activ_function == activ_functions_list[0]) for activ_function in activ_functions_list)):#it is distinguished if all neurons in layer has the same activation function
+                if(all((activ_function.__code__.co_code == activ_functions_list[0].__code__.co_code) for activ_function in activ_functions_list)):#it is distinguished if all neurons in layer has the same activation function. In this implementation for same activ function in layer there should be no problem (as all activ functions are copies of each other) with normal comparision, but if it is done differently (or purpose or not) than intended than it might cause problems. For this reason codes are compared just to be sure.
                     #softmax function is a special case, as it can be only used with vector inputs, so all activation functions needs to be the same in the layer for it to function (makes no sense when calculated neuron by neuron as in different activ function in layer case). So, in practice function need to have different names for both cases (if for some reason user wants to use softmax in second case).
-                    if(activ_functions_list[0] == softmax):
+                    if(activ_functions_list[0].__code__.co_code == softmax.__code__.co_code):#as activ_functions_list[0] and softmax would be different object, their comparision would yield FALSE. To get proper result codes needs to be compared as they would be the same for same function, but different objects.
                         activ_function = softmax_vec
                     else:#everything except softmax doesn't need different function version for vector and scalar input
                         activ_function = activ_functions_list[0]
                     #layer activation is done (whole layer)
-                    activation_out = activationLayer_vector(matrix_multi,activ_function)
+                    activation_out = activ_function(matrix_multi)
                 else:#if neurons have different activation function in layer, then activation proceeds neuron by neuron
                     #layer activation is done (neuron by neuron)
                     activation_out = activationLayer(matrix_multi,activ_functions_list)
@@ -258,8 +258,8 @@ class FNN:
             dL_dy = derLoss_vector(targets,a_output,loss_derivative)#it should be always possible to calculate loss by vectors
         else:#if shapes does not match, than given data is not correct, backpropagation can not proceed and proper error should be thrown.
             raise NotSupportedInputGiven("backpropagation","Network output and ground truth does not match")
-        #gradient of loss to the pre-activ
-        delta = gradLoss(dL_dy,z_output,activ_functions_list)
+        #gradient of loss to the pre-activ calculation
+        delta = getDelta(dL_dy,z_output,activ_functions_list) 
         #propagating loss through network
         for layer_index in reversed(range(num_layers)):
             #getting input to current layer
@@ -281,8 +281,8 @@ class FNN:
                 z_prev = z_values[layer_index]#same case as with 'a_in'
                 #first previous delta needs to be multiplied by weight matrix
                 delta_prot = weight_array_nobias.T @ delta 
-                #the next element of getting delta is to multiply it through activa function derivatives
-                delta_prev = gradLoss(delta_prot,z_prev,activ_functions_list_prev) 
+                #gradient of loss to the pre-activ calculation
+                delta_prev = getDelta(delta_prot,z_prev,activ_functions_list_prev) 
                 #new delta was calculated,so it can be assigned to variable, so it can be used in next iteration
                 delta = delta_prev
         #reversing dW list for proper representation(last layer as last element)
