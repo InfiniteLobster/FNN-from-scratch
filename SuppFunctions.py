@@ -72,42 +72,54 @@ def activationLayer(input,activ_functions_list):
     shapeInput = input.shape
     #output variable is declared for pre-allocation
     output = np.empty(shapeInput)
-    #iterating through inputs (this operation is implemented in loop for code readability and clarity contrary to putting whole np arrays throgh activation functiond))
-    for iInput in range(shapeInput[1]):
-        #getting current input
-        input_current = input[:,iInput]
-        #iterating through neurons in layer
-        for iNeuron in range(input_current.shape[0]):
-            #getting activation function of current neuron
-            activ_function_current = activ_functions_list[iNeuron]
-            #puttign input through activation function
-            output_current = activ_function_current(input_current[iNeuron])
-            #assignign neuron output to output variable
-            output[iNeuron,iInput] = output_current
+    #iterating through neurons as each need to be calculated separetely
+    for iNeuron in range(input.shape[0]):
+        #selecting input for current neuron (row vector for current neuron)
+        input_current = input[iNeuron,:]
+        #getting activation function of current neuron
+        activ_function_current = activ_functions_list[iNeuron]
+        #puttign input through activation function
+        output_current = activ_function_current(input_current)
+        #assignign neuron output to output variable
+        output[iNeuron,:] = output_current
     #returning the output
     return output
 #
 def derLoss(targets,a_output,loss_derivative):
-    #
+    #to create properly sized output variable (pre-allocation) information of input(targets or a_output as they should have same shape) shape is needed
     shapeInput = a_output.shape
-    #
+    #output variable is declared for pre-allocation
     dL_dy_all = np.empty(shapeInput)
-    #
-    for iInput in range(shapeInput[1]):
-        #
-        y_col = targets[:,iInput]
-        a_col = a_output[:,iInput]
-        #
-        for iNeuron in range(y_col.shape[0]):
-            #
-            y = y_col[iNeuron]
-            a = a_col[iNeuron]
-            #
-            dL_dy = loss_derivative(y,a)
-            # 
-            dL_dy_all[iNeuron,iInput] = dL_dy
+    #iterating through neurons as each need to be calculated separetely
+    for iNeuron in range(shapeInput[0]):
+        #selecting input for current neuron (row vector for current neuron)
+        y_row = targets[iNeuron,:]
+        a_row = a_output[iNeuron,:]
+        #calculating loss
+        dL_dy = loss_derivative(y_row,a_row)
+        #assigning loss of neuron across inputs(batch) to pre-allocated variable
+        dL_dy_all[iNeuron,:] = dL_dy
     #returning the output
     return dL_dy_all
+#
+def getDelta(der_prev,z,activ_functions_list):
+
+    if(all((activ_function.__code__.co_code == activ_functions_list[0].__code__.co_code) for activ_function in activ_functions_list)):
+            #
+            if(activ_functions_list[0].__code__.co_code == softmax.__code__.co_code):
+                activ_function = softmax_vec
+            else:
+                activ_function = activ_functions_list[0]
+            #
+            activ_function_der = getDer(activ_function)
+            #
+            a_der = activ_function_der(z)
+            #
+            delta = der_prev * a_der
+    else:#
+        #
+        delta = gradLoss(der_prev,z,activ_functions_list) 
+    return delta
 #
 def gradLoss(derPrev,z_output,activ_functions_list):
     #
@@ -142,7 +154,8 @@ der_map = {
     tanh: der_tanh,
     relu: der_relu,
     leaky_relu: der_leaky_relu,
-    softmax: der_softmax
+    softmax: der_softmax,
+    softmax_vec: der_softmax_vec
 }
 def getDer(func):
     if func in der_map:

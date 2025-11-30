@@ -1,8 +1,8 @@
 
 
 import numpy as np
-from TrainingFunctions import backwards
-from LossFunctions import MeanSquaredErrorDerivative
+from TrainingFunctions import backwards#to delete after transform
+from LossFunctions import *
 import SuppFunctions  # for optional gradient clipping
 
 
@@ -29,24 +29,13 @@ def train_minibatch_sgd(network,
 
             # Prepare a list of accumulated gradients, one array per layer.
             # Each is initialized as zeros with the same shape as that layer's weights.
-            grad_acc = [np.zeros_like(W) for W in network.weights_list]
-
-            # Loop over all samples in this mini-batch
-            for idx in batch_idx:
-                # Select one sample (column) and target
-                input_sample = inputs[:, idx:idx + 1]
-                target_sample = targets[:, idx:idx + 1]
-
-                # Compute gradients for this sample
-                grad_W = backwards(network,
-                                   input_sample,
-                                   target_sample,
-                                   loss_derivative)
-
-                # Accumulate gradients for each layer.
-                for i in range(len(grad_acc)):
-                    grad_acc[i] += grad_W[i]
-
+            #slicing current batch data
+            input_sample = inputs[:,batch_idx:batch_idx+1]#should also work without ':batch_idx+1' in this implementation, but there is no testing for this, so I can't check
+            target_sample = targets[:,batch_idx:batch_idx+1]
+            #propagation of input(-s in case of batches) through network
+            out = network.forward(input_sample)
+            #propagating error backwards through network
+            grad_W = network.backward(out[0],out[1],target_sample,loss_derivative)
             # The last mini-batch may contain fewer than 'batch_size' samples,
             # so we compute the effective size explicitly.
             batch_size_effective = len(batch_idx)
@@ -54,7 +43,7 @@ def train_minibatch_sgd(network,
             # Update each layer's weight matrix 
             for i in range(len(network.weights_list)):
                 # Average gradient over the mini-batch
-                grad_avg = grad_acc[i] / batch_size_effective
+                grad_avg = grad_W[i] / batch_size_effective
 
                 # clip gradient to prevent exploding gradients (optional)
                 grad_avg = SuppFunctions.clip_gradient(grad_avg)
