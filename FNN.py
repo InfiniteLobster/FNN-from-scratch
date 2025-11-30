@@ -205,8 +205,8 @@ class FNN:
         else:#if given data is not in proper format, the error should be thrown. TO DO: proper error.
             raise NotSupportedInputGiven("input propagation","Not supported data type given.")
         #matix multiplications results and activation results needs to be saved for output. For this purpose variables with lists are created
-        z = [input_format]#in this implementation a first value of z(matrix multi results) would be input values (can be interpreted as representation of input layer, which is not represented by any network attribute in this implementation) as for input layer it is input.
-        a = [input_format]#in this implementation a first value of a(activation results) would be input values (can be interpreted as representation of input layer, which is not represented by any network attribute in this implementation) as for input layer it is identity value.
+        z_all = [input_format]#in this implementation a first value of z(matrix multi results) would be input values (can be interpreted as representation of input layer, which is not represented by any network attribute in this implementation) as for input layer it is input.
+        a_all = [input_format]#in this implementation a first value of a(activation results) would be input values (can be interpreted as representation of input layer, which is not represented by any network attribute in this implementation) as for input layer it is identity value.
         #input needs to propagate through all layers in network and it is achieved by looping through them.
         for iLayer in range(len(weights_list)):
             #variables necessery for current layer propagations are assigned to local variables for readability
@@ -218,7 +218,7 @@ class FNN:
             #it needs to be verified if matrix multiplication can be performed. Theoretically it should be strictly necessery only for first input as rest should be accounted by architecture, but it is present for all if some undetected mistake was made in architecture creation.
             if(weights_array.shape[1] == input_ready.shape[0]):
                 #input is multiplied by weights for forward pass (matrix multiplication)
-                matrix_multi = weights_array @ input_ready
+                z = weights_array @ input_ready
                 #in this implementatation neurons in layer can have different activation function. Activation is calculated differently when layer has the same activation function for all neurons and when they are different. For this reason the case should be distinguished and process differently.
                 if(all((activ_function.__code__.co_code == activ_functions_list[0].__code__.co_code) for activ_function in activ_functions_list)):#it is distinguished if all neurons in layer has the same activation function. In this implementation for same activ function in layer there should be no problem (as all activ functions are copies of each other) with normal comparision, but if it is done differently (or purpose or not) than intended than it might cause problems. For this reason codes are compared just to be sure.
                     #softmax function is a special case, as it can be only used with vector inputs, so all activation functions needs to be the same in the layer for it to function (makes no sense when calculated neuron by neuron as in different activ function in layer case). So, in practice function need to have different names for both cases (if for some reason user wants to use softmax in second case).
@@ -227,17 +227,17 @@ class FNN:
                     else:#everything except softmax doesn't need different function version for vector and scalar input
                         activ_function = activ_functions_list[0]
                     #layer activation is done (whole layer)
-                    activation_out = activ_function(matrix_multi)
+                    a = activ_function(z)
                 else:#if neurons have different activation function in layer, then activation proceeds neuron by neuron
                     #layer activation is done (neuron by neuron)
-                    activation_out = activationLayer(matrix_multi,activ_functions_list)
+                    a = activationLayer(z,activ_functions_list)
                 #calculated values are passed to lists storing them
-                z.append(matrix_multi)
-                a.append(activation_out)
+                z_all.append(z)
+                a_all.append(a)
             else:#if inproper input was given and operation cannot proceed proper error should be raised.
                 raise NotSupportedInputGiven("input propagation","Input does not match network, i.e. matrix multiplication cannot be done due to mismatch of dimensions.")
         #results are joined together into list for proper output
-        output = [z,a]
+        output = [z_all,a_all]
         #results are returned
         return output
     #backward propagation of error through the network

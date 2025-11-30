@@ -84,7 +84,7 @@ def activationLayer(input,activ_functions_list):
         output[iNeuron,:] = output_current
     #returning the output
     return output
-#
+#this function calculates loss derivative for each neuron in output layer
 def derLoss(targets,a_output,loss_derivative):
     #to create properly sized output variable (pre-allocation) information of input(targets or a_output as they should have same shape) shape is needed
     shapeInput = a_output.shape
@@ -101,53 +101,49 @@ def derLoss(targets,a_output,loss_derivative):
         dL_dy_all[iNeuron,:] = dL_dy
     #returning the output
     return dL_dy_all
-#
+#this function calculates gradient of loss for subsequent layers
 def getDelta(der_prev,z,activ_functions_list):
-
-    if(all((activ_function.__code__.co_code == activ_functions_list[0].__code__.co_code) for activ_function in activ_functions_list)):
-            #
+    #depending if neurons in layer have the same activation function or different gradient of loss would be calculated differently 
+    if(all((activ_function.__code__.co_code == activ_functions_list[0].__code__.co_code) for activ_function in activ_functions_list)):#it is verified if all activation functions are the same. To get proper result codes needs to be compared as they would be the same for same function, even as different bjects. Simple comparision would yield false even two objects of same function were compared.
+            #softmax function is a special case, as it can be only used with vector inputs, so all activation functions needs to be the same in the layer for it to function (makes no sense when calculated neuron by neuron as in different activ function in layer case). So, in practice function need to have different names for both cases (if for some reason user wants to use softmax in second case).
             if(activ_functions_list[0].__code__.co_code == softmax.__code__.co_code):
                 activ_function = softmax_vec
-            else:
+            else:##everything except softmax doesn't need different function version for vector and scalar input
                 activ_function = activ_functions_list[0]
-            #
+            #getting derivative of activation function function
             activ_function_der = getDer(activ_function)
-            #
+            #applying it for input
             a_der = activ_function_der(z)
-            #
+            #calculating gradient of loss
             delta = der_prev * a_der
-    else:#
-        #
+    else:#if neurons have different activation function in layer, then gradient loss proceeds neuron by neuron proceeds neuron by neuron
+        #caling function that would perform gradient of loss calculation neuron by neuron
+
         delta = gradLoss(der_prev,z,activ_functions_list) 
     return delta
-#
+#this function caluclates gradient of loss neuron by neuron (needed for case when there are different activation functions for neurons in the same layer)
 def gradLoss(derPrev,z_output,activ_functions_list):
-    #
+    #to create properly sized output variable (pre-allocation) information of input(z_output) shape is needed
     shapeInput = derPrev.shape
-    #
+    #output variable is declared for pre-allocation
     delta = np.empty(shapeInput)
-    #
-    for iInput in range(shapeInput[1]):
-        #
-        der_col = derPrev[:,iInput]
-        z_col = z_output[:,iInput]
-        #
-        for iNeuron in range(der_col.shape[0]):
-            #
-            der = der_col[iNeuron]
-            z = z_col[iNeuron]
-            #
-            activ_function = activ_functions_list[iNeuron]
-            activ_function_der = getDer(activ_function)
-            #
-            a_der = activ_function_der(z)
-            #
-            delta_neur = der * a_der
-            #
-            delta[iNeuron,iInput] = delta_neur
-    #
+    #iterating through neurons as each need to be calculated separetely
+    for iNeuron in range(shapeInput[0]):
+        #selecting input for current neuron (row vector for current neuron)
+        der_row = derPrev[iNeuron,:]
+        z_row = z_output[iNeuron,:]
+        #getting derivative of activation function for current neuron
+        activ_function = activ_functions_list[iNeuron]
+        activ_function_der = getDer(activ_function)
+        #getting derivatives values for current neuron
+        a_der = activ_function_der(z_row)
+        #calculating delta of current neuron for inputs
+        delta_neur = der_row * a_der
+        #assigning gradient of loss to output variable for currently processed neuron
+        delta[iNeuron,:] = delta_neur
+    #returning the output
     return delta
-#
+#this function gets derivative of activation function based on activation function
 der_map = {
     identity: der_identity,
     sigmoid: der_sigmoid,
@@ -156,12 +152,16 @@ der_map = {
     leaky_relu: der_leaky_relu,
     softmax: der_softmax,
     softmax_vec: der_softmax_vec
-}
+}#mapping all derivatives to their activation functions
+#function itself
 def getDer(func):
+    #it needs ti be checked wheter derivative for given activation function is implemented and raise proper error if not. This is quite important part of error handling of the project as previously it was only possible to determine if given input is function (callable), now it is checked if it is actually one of implemented activation functions 
     if func in der_map:
+        #if pair exist, then derivative can be returned
         return der_map[func]
-    raise NotImplementedError(f"Derivative not implemented for {func.__name__}")
-#
+    else:#if there is no derivative then proper error needs to be raised
+        raise NotImplementedError(f"Derivative not implemented for {func.__name__}")
+#this function clip gradients to avoid issue of exploding gradients
 def clip_gradient(grad, threshold=1.0):
     norm = np.linalg.norm(grad)
     if norm > threshold:
