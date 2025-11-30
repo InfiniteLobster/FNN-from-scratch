@@ -1,12 +1,12 @@
-
-
 import numpy as np
-from TrainingFunctions import backwards
 from LossFunctions import MeanSquaredErrorDerivative
 import SuppFunctions  # for optional gradient clipping
 
 
-# 1) Mini-batch Stochastic Gradient Descent
+
+# 1. MINI-BATCH STOCHASTIC GRADIENT DESCENT 
+
+
 def train_minibatch_sgd(network,
                         inputs,
                         targets,
@@ -14,57 +14,83 @@ def train_minibatch_sgd(network,
                         learning_rate,
                         batch_size,
                         loss_derivative=MeanSquaredErrorDerivative):
+    """
+    Train the FNN using mini-batch SGD.
 
+    inputs:  np.ndarray of shape (n_features, n_samples)
+    targets: np.ndarray of shape (n_outputs, n_samples)
+    """
+
+    # Number of training samples 
     n_samples = inputs.shape[1]
 
+    # Loop through the dataset
     for epoch in range(epochs):
 
-        # Random permutation of indices to create random mini-batches
+        # Shuffle sample indices so that batches are random each epoch
         indices = np.random.permutation(n_samples)
 
-        # Iterate over the dataset in chunks of size 'batch_size'
+        # Process the dataset in chunks of size batch_size
         for start in range(0, n_samples, batch_size):
-            # Compute the slice of indices for this mini-batch
+
+            # Integer indices for this batch
             batch_idx = indices[start:start + batch_size]
 
-            # Prepare a list of accumulated gradients, one array per layer.
-            # Each is initialized as zeros with the same shape as that layer's weights.
-            grad_acc = [np.zeros_like(W) for W in network.weights_list]
+            
+            # Slice OUT the batch:
+            # x_batch: (n_features, B)
+            # y_batch: (n_outputs, B)
+            # B is the effective batch size (can be smaller for last batch)
+            
+            x_batch = inputs[:, batch_idx]
+            y_batch = targets[:, batch_idx]
 
-            # Loop over all samples in this mini-batch
-            for idx in batch_idx:
-                # Select one sample (column) and target
-                input_sample = inputs[:, idx:idx + 1]
-                target_sample = targets[:, idx:idx + 1]
+            
+            # Forward pass on the entire batch
+            #
+            # z_values[i] -> pre-activation of layer i, shape (n_i, B)
+            # a_values[i] ->post-activation (activation output)
+            #
+            # Both contain *columns per sample*.
+        
+            z_values, a_values = network.forward(x_batch)
 
-                # Compute gradients for this sample
-                grad_W = backwards(network,
-                                   input_sample,
-                                   target_sample,
-                                   loss_derivative)
+            
+            # Backward pass on the entire batch
+            #
+            # Returns a list grad_W where:
+            #    grad_W[i] has shape (n_i, n_{i-1}+1)
+            
+            # The gradient is the *SUM over all B samples*.
+            # Finding the average below
+            
+            grad_W = network.backward(z_values, a_values, y_batch, loss_derivative)
 
-                # Accumulate gradients for each layer.
-                for i in range(len(grad_acc)):
-                    grad_acc[i] += grad_W[i]
+            # Effective batch size (last batch may have fewer samples)
+            batch_size_effective = x_batch.shape[1]
 
-            # The last mini-batch may contain fewer than 'batch_size' samples,
-            # so we compute the effective size explicitly.
-            batch_size_effective = len(batch_idx)
-
-            # Update each layer's weight matrix 
+            
+            # Weight update
+            # # We divide by  batch_size_effective to convert the
+            # summed gradient into an average gradient.
+        
             for i in range(len(network.weights_list)):
-                # Average gradient over the mini-batch
-                grad_avg = grad_acc[i] / batch_size_effective
 
-                # clip gradient to prevent exploding gradients (optional)
+                # Convert summed gradient to average gradient
+                grad_avg = grad_W[i] / batch_size_effective
+
+                # clipping
                 grad_avg = SuppFunctions.clip_gradient(grad_avg)
 
-                #Gradient descent update
+                # Gradient descent step
                 network.weights_list[i] -= learning_rate * grad_avg
 
 
 
-# 3) Mini-batch Adam Optimizer
+
+# 2. MINI-BATCH ADAM OPTIMIZER
+
+
 def train_minibatch_adam(network,
                          inputs,
                          targets,
@@ -75,69 +101,79 @@ def train_minibatch_adam(network,
                          beta1=0.9,
                          beta2=0.999,
                          epsilon=1e-8):
+ 
 
     n_samples = inputs.shape[1]
 
-    # Initialize first and second moment estimates for each layer's weights.
-    m = [np.zeros_like(W) for W in network.weights_list]  # first moment
-    v = [np.zeros_like(W) for W in network.weights_list]  # second moment
+    
+    # Initialize Adam moment vectors for each layer.
+    #
+    # Shapes are identical to corresponding weight matrices.
+    # m[i]: first moment (mean of gradients)
+    # v[i]: second moment (mean of squared gradients)
+    
+    m = [np.zeros_like(W) for W in network.weights_list]
+    v = [np.zeros_like(W) for W in network.weights_list]
 
-    # Global time step (counts how many parameter updates we have done so far).
-    t = 0
+    t = 0  # Adam time step counter (increments per batch)
 
+    # Loop over dataset
     for epoch in range(epochs):
 
-        # Shuffle indices for this epoch
+        # Shuffle data order this epoch
         indices = np.random.permutation(n_samples)
 
-        # Loop over mini-batches
+        # Mini-batch loop
         for start in range(0, n_samples, batch_size):
+
             batch_idx = indices[start:start + batch_size]
 
-            # Accumulate gradients over the mini-batch
-            grad_acc = [np.zeros_like(W) for W in network.weights_list]
+            # Extract batch: shapes (features, B) and (outputs, B)
+            x_batch = inputs[:, batch_idx]
+            y_batch = targets[:, batch_idx]
 
-            for idx in batch_idx:
-                input_sample = inputs[:, idx:idx + 1]
-                target_sample = targets[:, idx:idx + 1]
+            # Forward and Backward on this batch 
+            z_values, a_values = network.forward(x_batch)
+            grad_W = network.backward(z_values, a_values, y_batch, loss_derivative)
 
-                grad_W = backwards(network,
-                                   input_sample,
-                                   target_sample,
-                                   loss_derivative)
+            B = x_batch.shape[1]  # batch size (maybe smaller on last batch)
 
-                for i in range(len(grad_acc)):
-                    grad_acc[i] += grad_W[i]
-
-            batch_size_effective = len(batch_idx)
-
-            # Each mini-batch update increments the time step.
+            # Increment Adam time step
             t += 1
 
-            # Update each layer with Adam rules
+            
+            # Adam update for each layer
+            # 
             for i in range(len(network.weights_list)):
-                # Average gradient over the mini-batch
-                g = grad_acc[i] / batch_size_effective
 
-                # clip to control exploding gradients (optional)
-                g = SuppFunctions.clip_gradient(g)
+                # Convert summed gradient to averaged gradient
+                g = grad_W[i] / B
 
-                
-                # Update biased first moment estimate (moving average of gradients)
+              
+
+            
+                # 1. Update biased first moment estimate
+              
                 m[i] = beta1 * m[i] + (1.0 - beta1) * g
 
-                # Update biased second moment estimate (moving average of squared gradients)
+                
+                # 2. Update biased second moment estimate
+                
                 v[i] = beta2 * v[i] + (1.0 - beta2) * (g * g)
 
+            
+                # 3. Bias corrections:
+             
                 
-                # Because m and v are initialized at zero, they are biased towards 0
-                # especially during the first steps. Bias correction compensates this.
                 m_hat = m[i] / (1.0 - beta1 ** t)
                 v_hat = v[i] / (1.0 - beta2 ** t)
 
                 
+                # 4. Compute parameter update:
                 
                 update = learning_rate * m_hat / (np.sqrt(v_hat) + epsilon)
 
-                # Apply update
+                
+                # 5. Apply update (gradient descent direction)
+                
                 network.weights_list[i] -= update
