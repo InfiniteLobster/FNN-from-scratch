@@ -73,7 +73,7 @@ def activationLayer(input,activ_functions_list):
     #output variable is declared for pre-allocation
     output = np.empty(shapeInput)
     #iterating through inputs (this operation is implemented in loop for code readability and clarity contrary to putting whole np arrays throgh activation functiond))
-    for iInput in range(shapeInput[1]):
+    for iInput in range(shapeInput[1]):#there 
         #getting current input
         input_current = input[:,iInput]
         #iterating through neurons in layer
@@ -84,6 +84,23 @@ def activationLayer(input,activ_functions_list):
             output_current = activ_function_current(input_current[iNeuron])
             #assignign neuron output to output variable
             output[iNeuron,iInput] = output_current
+    #returning the output
+    return output
+#
+def activationLayer_vector(input,activ_function):
+    #to create properly sized output variable (pre-allocation) information of input(output of matrix multiplication) shape is needed
+    shapeInput = input.shape
+    #output variable is declared for pre-allocation
+    output = np.empty(shapeInput)
+    #iterating through inputs (this operation is implemented in loop for code readability and clarity contrary to putting whole np arrays throgh activation functiond))
+    for iInput in range(shapeInput[1]):
+        #getting current input
+        input_current = input[:,iInput]
+        #puttign input through activation function
+        output_current = activ_function(input_current)
+        #assignign neuron output to output variable
+        output[:,iInput] = output_current
+        #iterating through neurons in layer
     #returning the output
     return output
 #
@@ -108,6 +125,12 @@ def derLoss(targets,a_output,loss_derivative):
             dL_dy_all[iNeuron,iInput] = dL_dy
     #returning the output
     return dL_dy_all
+#
+def derLoss_vector(targets,a_output,loss_derivative):
+    #calculating loss
+    dL_dy = loss_derivative(targets,a_output)
+    #returning the output
+    return dL_dy
 #
 def gradLoss(derPrev,z_output,activ_functions_list):
     #
@@ -142,7 +165,8 @@ der_map = {
     tanh: der_tanh,
     relu: der_relu,
     leaky_relu: der_leaky_relu,
-    softmax: der_softmax
+    softmax: der_softmax,
+    softmax_vec: der_softmax_vec
 }
 def getDer(func):
     if func in der_map:

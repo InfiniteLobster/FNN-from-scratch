@@ -219,8 +219,18 @@ class FNN:
             if(weights_array.shape[1] == input_ready.shape[0]):
                 #input is multiplied by weights for forward pass (matrix multiplication)
                 matrix_multi = weights_array @ input_ready
-                #the results of input "passing through" weights needs to be put through activation functions
-                activation_out = activationLayer(matrix_multi,activ_functions_list)
+                #in this implementatation neurons in layer can have different activation function. Activation is calculated differently when layer has the same activation function for all neurons and when they are different. For this reason the case should be distinguished and process differently.
+                if(all((activ_function == activ_functions_list[0]) for activ_function in activ_functions_list)):#it is distinguished if all neurons in layer has the same activation function
+                    #softmax function is a special case, as it can be only used with vector inputs, so all activation functions needs to be the same in the layer for it to function (makes no sense when calculated neuron by neuron as in different activ function in layer case). So, in practice function need to have different names for both cases (if for some reason user wants to use softmax in second case).
+                    if(activ_functions_list[0] == softmax):
+                        activ_function = softmax_vec
+                    else:#everything except softmax doesn't need different function version for vector and scalar input
+                        activ_function = activ_functions_list[0]
+                    #layer activation is done (whole layer)
+                    activation_out = activationLayer_vector(matrix_multi,activ_function)
+                else:#if neurons have different activation function in layer, then activation proceeds neuron by neuron
+                    #layer activation is done (neuron by neuron)
+                    activation_out = activationLayer(matrix_multi,activ_functions_list)
                 #calculated values are passed to lists storing them
                 z.append(matrix_multi)
                 a.append(activation_out)
@@ -245,7 +255,7 @@ class FNN:
         activ_functions_list = activ_functions_list_list[-1]
         #getting derivative of loss for output layer
         if(a_output.shape == targets.shape):
-            dL_dy = derLoss(targets,a_output,loss_derivative)
+            dL_dy = derLoss_vector(targets,a_output,loss_derivative)#it should be always possible to calculate loss by vectors
         else:#if shapes does not match, than given data is not correct, backpropagation can not proceed and proper error should be thrown.
             raise NotSupportedInputGiven("backpropagation","Network output and ground truth does not match")
         #gradient of loss to the pre-activ
