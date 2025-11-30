@@ -36,9 +36,15 @@ def leaky_relu(x, slope=0.01):
 
 def der_leaky_relu(x, slope=0.01):
     return np.where(x > 0, 1.0, slope)
-
-#Softmax (vector input)
+#Softmax (scalar input) - if softmax is used in scalar context, then it is dividing by itself, so it would yield 1 and derivative would be always 0. In practice it should never happen, but it is up to user choice
 def softmax(x):
+    return 1
+
+def der_softmax(x):
+    return 0
+
+#Softmax (vector/array input)
+def softmax_vec(x):
     """
     Softmax supports vector or column-vector input.
     Uses numerical stabilization.
@@ -47,11 +53,11 @@ def softmax(x):
     exp_values = np.exp(x_shifted)
     return exp_values / np.sum(exp_values, axis=0, keepdims=True)
 
-def der_softmax(x):
+def der_softmax_vec(x):
     """
     Softmax derivative returns the *diagonal* part only.
     Full Jacobian is layer-dependent; usually combined with cross-entropy.
     Here we return the element-wise derivative: s*(1-s).
     """
-    s = softmax(x)
+    s = softmax_vec(x)
     return s * (1 - s)

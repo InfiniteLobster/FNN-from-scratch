@@ -1,5 +1,6 @@
 import numpy as np
-from LossFunctions import MeanSquaredErrorDerivative
+from TrainingFunctions import backwards#to delete after transform
+from LossFunctions import *
 import SuppFunctions  # for optional gradient clipping
 
 
@@ -36,56 +37,23 @@ def train_minibatch_sgd(network,
             # Integer indices for this batch
             batch_idx = indices[start:start + batch_size]
 
-            
-            # Slice OUT the batch:
-            # x_batch: (n_features, B)
-            # y_batch: (n_outputs, B)
-            # B is the effective batch size (can be smaller for last batch)
-            
-            x_batch = inputs[:, batch_idx]
-            y_batch = targets[:, batch_idx]
+            # Prepare a list of accumulated gradients, one array per layer.
+            # Each is initialized as zeros with the same shape as that layer's weights.
+            #slicing current batch data
+            input_sample = inputs[:,batch_idx:batch_idx+1]#should also work without ':batch_idx+1' in this implementation, but there is no testing for this, so I can't check
+            target_sample = targets[:,batch_idx:batch_idx+1]
+            #propagation of input(-s in case of batches) through network
+            out = network.forward(input_sample)
+            #propagating error backwards through network
+            grad_W = network.backward(out[0],out[1],target_sample,loss_derivative)
+            # The last mini-batch may contain fewer than 'batch_size' samples,
+            # so we compute the effective size explicitly.
+            batch_size_effective = len(batch_idx)
 
-            
-            # Forward pass on the entire batch
-            #
-            # z_values[i] -> pre-activation of layer i, shape (n_i, B)
-            # a_values[i] ->post-activation (activation output)
-            #
-            # Both contain *columns per sample*.
-        
-            z_values, a_values = network.forward(x_batch)
-
-            
-            # Backward pass on the entire batch
-            #
-            # Returns a list grad_W where:
-            #    grad_W[i] has shape (n_i, n_{i-1}+1)
-            
-            # The gradient is the *SUM over all B samples*.
-            # Finding the average below
-            
-            grad_W = network.backward(z_values, a_values, y_batch, loss_derivative)
-
-            # Effective batch size (last batch may have fewer samples)
-            batch_size_effective = x_batch.shape[1]
-
-            
-            # Weight update
-            # # We divide by  batch_size_effective to convert the
-            # summed gradient into an average gradient.
-        
+            # Update each layer's weight matrix 
             for i in range(len(network.weights_list)):
-
-                # Convert summed gradient to average gradient
+                # Average gradient over the mini-batch
                 grad_avg = grad_W[i] / batch_size_effective
-
-                # clipping
-                grad_avg = SuppFunctions.clip_gradient(grad_avg)
-
-                # Gradient descent step
-                network.weights_list[i] -= learning_rate * grad_avg
-
-
 
 
 # 2. MINI-BATCH ADAM OPTIMIZER
