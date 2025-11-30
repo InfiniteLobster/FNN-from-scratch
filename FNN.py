@@ -255,7 +255,7 @@ class FNN:
         activ_functions_list = activ_functions_list_list[-1]
         #getting derivative of loss for output layer
         if(a_output.shape == targets.shape):
-            dL_dy = derLoss_vector(targets,a_output,loss_derivative)#it should be always possible to calculate loss by vectors
+            dL_dy = loss_derivative(targets,a_output)#it should be always possible to calculate loss by vectors
         else:#if shapes does not match, than given data is not correct, backpropagation can not proceed and proper error should be thrown.
             raise NotSupportedInputGiven("backpropagation","Network output and ground truth does not match")
         #gradient of loss to the pre-activ calculation

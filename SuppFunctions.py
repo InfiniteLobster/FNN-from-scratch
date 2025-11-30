@@ -72,8 +72,9 @@ def activationLayer(input,activ_functions_list):
     shapeInput = input.shape
     #output variable is declared for pre-allocation
     output = np.empty(shapeInput)
+    #iterating through neurons as each need to be calculated separetely
     for iNeuron in range(input.shape[0]):
-        #selecting input for current neuron (row vector of current neuron)
+        #selecting input for current neuron (row vector for current neuron)
         input_current = input[iNeuron,:]
         #getting activation function of current neuron
         activ_function_current = activ_functions_list[iNeuron]
@@ -85,32 +86,21 @@ def activationLayer(input,activ_functions_list):
     return output
 #
 def derLoss(targets,a_output,loss_derivative):
-    #
+    #to create properly sized output variable (pre-allocation) information of input(targets or a_output as they should have same shape) shape is needed
     shapeInput = a_output.shape
-    #
+    #output variable is declared for pre-allocation
     dL_dy_all = np.empty(shapeInput)
-    #
-    for iInput in range(shapeInput[1]):
-        #
-        y_col = targets[:,iInput]
-        a_col = a_output[:,iInput]
-        #
-        for iNeuron in range(y_col.shape[0]):
-            #
-            y = y_col[iNeuron]
-            a = a_col[iNeuron]
-            #
-            dL_dy = loss_derivative(y,a)
-            # 
-            dL_dy_all[iNeuron,iInput] = dL_dy
+    #iterating through neurons as each need to be calculated separetely
+    for iNeuron in range(shapeInput[0]):
+        #selecting input for current neuron (row vector for current neuron)
+        y_row = targets[iNeuron,:]
+        a_row = a_output[iNeuron,:]
+        #calculating loss
+        dL_dy = loss_derivative(y_row,a_row)
+        #assigning loss of neuron across inputs(batch) to pre-allocated variable
+        dL_dy_all[iNeuron,:] = dL_dy
     #returning the output
     return dL_dy_all
-#
-def derLoss_vector(targets,a_output,loss_derivative):
-    #calculating loss
-    dL_dy = loss_derivative(targets,a_output)
-    #returning the output
-    return dL_dy
 #
 def getDelta(der_prev,z,activ_functions_list):
 
