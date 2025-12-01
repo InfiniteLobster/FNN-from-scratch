@@ -1,0 +1,83 @@
+_wandb:
+    value:
+        cli_version: 0.23.0
+        e:
+            2scmtsi5egti8cyj7oywoo2w7bw717y2:
+                codePath: c:\Users\Notandi\Desktop\comp\FNN-from-scratch\FNNTest.ipynb
+                codePathLocal: FNNTest.ipynb
+                cpu_count: 4
+                cpu_count_logical: 8
+                disk:
+                    /:
+                        total: "506333229056"
+                        used: "318486634496"
+                email: thludviksson17@gmail.com
+                executable: c:\Users\Notandi\AppData\Local\Programs\Python\Python313\python.exe
+                git:
+                    commit: 61e28bb9a69ed71583c388a81ec48d923aaf8943
+                    remote: https://github.com/InfiniteLobster/FNN-from-scratch.git
+                host: IS-PC24S4HN
+                memory:
+                    total: "16868499456"
+                os: Windows-10-10.0.19045-SP0
+                program: c:\Users\Notandi\Desktop\comp\FNN-from-scratch\FNNTest.ipynb
+                python: CPython 3.13.7
+                root: c:\Users\Notandi\Desktop\comp\FNN-from-scratch
+                startedAt: "2025-12-01T21:16:07.666237Z"
+                writerId: 2scmtsi5egti8cyj7oywoo2w7bw717y2
+        m: []
+        python_version: 3.13.7
+        t:
+            "3":
+                - 2
+                - 16
+            "4": 3.13.7
+            "5": 0.23.0
+            "8":
+                - 1
+                - 3
+            "10":
+                - 20
+            "12": 0.23.0
+            "13": windows-amd64
+activation_hidden:
+    value: relu
+activation_output:
+    value: softmax_vec
+batch_size:
+    value: 64
+beta1:
+    value: 0.9
+beta2:
+    value: 0.999
+epochs:
+    value: 20
+epsilon:
+    value: 1e-08
+l1_coeff:
+    value: 0
+l2_coeff:
+    value: 0.0005
+learning_rate:
+    value: 0.01
+momentum:
+    value: 0.9
+n_hidden_units:
+    value:
+        - 512
+        - 256
+        - 128
+num_hidden_layers:
+    value: 3
+optimizer:
+    value: sgd_momentum
+rmsprop_beta:
+    value: 0.9
+test_path:
+    value: Data/fashion-mnist_test.csv
+train_path:
+    value: Data/fashion-mnist_train.csv
+val_fraction:
+    value: 0.1
+weights_init:
+    value: HeNor

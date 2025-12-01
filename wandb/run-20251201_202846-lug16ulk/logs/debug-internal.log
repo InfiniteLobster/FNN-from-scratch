@@ -1,0 +1,6 @@
+{"time":"2025-12-01T20:28:48.9712936+01:00","level":"INFO","msg":"stream: starting","core version":"0.23.0"}
+{"time":"2025-12-01T20:28:49.511021+01:00","level":"INFO","msg":"stream: created new stream","id":"lug16ulk"}
+{"time":"2025-12-01T20:28:49.5110684+01:00","level":"INFO","msg":"handler: started","stream_id":"lug16ulk"}
+{"time":"2025-12-01T20:28:49.5188838+01:00","level":"INFO","msg":"stream: started","id":"lug16ulk"}
+{"time":"2025-12-01T20:28:49.5188838+01:00","level":"INFO","msg":"writer: started","stream_id":"lug16ulk"}
+{"time":"2025-12-01T20:28:49.5194596+01:00","level":"INFO","msg":"sender: started","stream_id":"lug16ulk"}

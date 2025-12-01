@@ -1,12 +1,22 @@
 import numpy as np
-from LossFunctions import *
-from SuppFunctions import *
+from LossFunctions import SoftmaxCrossEntropyDerivative
+import SuppFunctions  # for clip_gradient
 
 
+# Helper: make sure inputs/targets have correct shape
+def _prepare_data(network, inputs, targets):
+    inputs = np.array(inputs, dtype=float)
+    targets = np.array(targets, dtype=float)
+
+    # If targets are (n_samples, n_outputs), fix them
+    if targets.shape[0] != network.weights_list[-1].shape[0]:
+        targets = targets.T
+
+    n_samples = inputs.shape[1]
+    return inputs, targets, n_samples
 
 
-# 1. MINI-BATCH STOCHASTIC GRADIENT DESCENT 
-
+# 1. MINI-BATCH STOCHASTIC GRADIENT DESCENT
 
 def train_minibatch_sgd(network,
                         inputs,
@@ -14,8 +24,10 @@ def train_minibatch_sgd(network,
                         epochs,
                         learning_rate,
                         batch_size,
-                        loss_derivative,
-                        grad_clip = 0):
+                        loss_derivative=SoftmaxCrossEntropyDerivative,
+                        l1_coeff=0.0,
+                        l2_coeff=0.0,
+                        grad_clip=0.0):
     """
     Train the FNN using mini-batch SGD.
 
@@ -23,53 +35,280 @@ def train_minibatch_sgd(network,
     targets: np.ndarray of shape (n_outputs, n_samples)
     """
 
-    # Number of training samples 
-    n_samples = inputs.shape[1] 
-    #sometimes Np due to its mechanics transposes the array. So far it happend only for targets. This is fix that resolves this issue
-    if(targets.shape[0] != network.weights_list[-1].shape[0]):
-        targets = targets.T
-    # Loop through the dataset
+    inputs, targets, n_samples = _prepare_data(network, inputs, targets)
+
     for epoch in range(epochs):
+
         # Shuffle sample indices so that batches are random each epoch
         indices = np.random.permutation(n_samples)
-        #preparing range and getting its last value for bacth loop
-        range_batches = range(0, n_samples, batch_size)
-        last_value = (((n_samples-1)//batch_size)*batch_size)# n_samples/batch_size gives amount of steps that fits into range, -1 is used to not accidentely "go over" the range as it is < n_samples. Multiplying gives precise number
+
         # Process the dataset in chunks of size batch_size
-        for start in range_batches:
-            #getting indices for this batch
-            batch_idx = indices[start:(start + batch_size)]
-            #slicing current batch data
-            input_sample = inputs[:,batch_idx]
-            target_sample = targets[:,batch_idx]
-            #propagation of input(-s in case of batches) through network
-            out = network.forward(input_sample)
-            #propagating error backwards through network
-            grad_W = network.backward(out[0],out[1],target_sample,loss_derivative)
-            #As last mini-batch may contain fewer than 'batch_size' samples, the size of batch has to be computed as it is not the same every time (checking index of)
-            if(start == last_value):
-                batch_size_effective = len(batch_idx)
-            else:
-                batch_size_effective = batch_size
-            # iterating through weights arrays (of layers) to update each layer's weight matrix 
+        for start in range(0, n_samples, batch_size):
+
+            # Integer indices for this batch
+            batch_idx = indices[start:start + batch_size]
+
+            # Batch data
+            x_batch = inputs[:, batch_idx]
+            y_batch = targets[:, batch_idx]
+            B = x_batch.shape[1]  # effective batch size
+
+            # Forward pass on the batch
+            z_values, a_values = network.forward(x_batch)
+
+            # Backward pass (gradients summed over batch)
+            grad_W = network.backward(z_values, a_values, y_batch, loss_derivative)
+
+            # Weight update
             for i in range(len(network.weights_list)):
-                #getting current layer
-                weights_array = network.weights_list[i]
-                # Average gradient over the mini-batch for current layer
-                grad_avg = grad_W[i] / batch_size_effective
-                #gradient clipping if selected
-                if(grad_clip != 0):
-                    grad_avg = clip_gradient(grad_avg,grad_clip)
-                #updating weights
-                weights_array -= learning_rate * grad_avg
-                #assignign updates weights to network property
-                network.weights_list[i] = weights_array
-    #returning trained network
+                W = network.weights_list[i]
+
+                # Convert summed gradient to average gradient
+                g = grad_W[i] / B
+
+                # ----- L2 regularization (no bias) -----
+                if l2_coeff != 0.0:
+                    reg = l2_coeff * W.copy()
+                    reg[:, 0] = 0.0  # do not regularize bias column
+                    g += reg
+
+                # ----- L1 regularization (no bias) -----
+                if l1_coeff != 0.0:
+                    reg_l1 = l1_coeff * np.sign(W.copy())
+                    reg_l1[:, 0] = 0.0
+                    g += reg_l1
+
+                # Optional gradient clipping
+                if grad_clip != 0.0:
+                    g = SuppFunctions.clip_gradient(g, grad_clip)
+
+                # Gradient descent step
+                network.weights_list[i] = W - learning_rate * g
+
     return network
 
 
-# 2. MINI-BATCH ADAM OPTIMIZER
+# 1b. MINI-BATCH SGD WITH MOMENTUM
 
+def train_minibatch_sgd_momentum(network,
+                                 inputs,
+                                 targets,
+                                 epochs,
+                                 learning_rate,
+                                 batch_size,
+                                 loss_derivative=SoftmaxCrossEntropyDerivative,
+                                 momentum=0.9,
+                                 l1_coeff=0.0,
+                                 l2_coeff=0.0,
+                                 grad_clip=0.0):
+    """
+    Train the FNN using mini-batch SGD with classical momentum.
+    """
+
+    inputs, targets, n_samples = _prepare_data(network, inputs, targets)
+
+    # Velocity (momentum) for each layer
+    v = [np.zeros_like(W) for W in network.weights_list]
+
+    for epoch in range(epochs):
+
+        # Shuffle data each epoch
+        indices = np.random.permutation(n_samples)
+
+        for start in range(0, n_samples, batch_size):
+
+            batch_idx = indices[start:start + batch_size]
+
+            x_batch = inputs[:, batch_idx]
+            y_batch = targets[:, batch_idx]
+            B = x_batch.shape[1]
+
+            # Forward / Backward on this batch
+            z_values, a_values = network.forward(x_batch)
+            grad_W = network.backward(z_values, a_values, y_batch, loss_derivative)
+
+            for i in range(len(network.weights_list)):
+                W = network.weights_list[i]
+                g = grad_W[i] / B
+
+                # L2 regularization (no bias)
+                if l2_coeff != 0.0:
+                    reg = l2_coeff * W.copy()
+                    reg[:, 0] = 0.0
+                    g += reg
+
+                # L1 regularization (no bias)
+                if l1_coeff != 0.0:
+                    reg_l1 = l1_coeff * np.sign(W.copy())
+                    reg_l1[:, 0] = 0.0
+                    g += reg_l1
+
+                if grad_clip != 0.0:
+                    g = SuppFunctions.clip_gradient(g, grad_clip)
+
+                # Momentum update: v = mu * v - lr * g
+                v[i] = momentum * v[i] - learning_rate * g
+
+                # Weight update: w = w + v
+                network.weights_list[i] = W + v[i]
+
+    return network
+
+
+# 2. MINI-BATCH RMSPROP
+
+def train_minibatch_rmsprop(network,
+                            inputs,
+                            targets,
+                            epochs,
+                            learning_rate,
+                            batch_size,
+                            loss_derivative=SoftmaxCrossEntropyDerivative,
+                            beta=0.9,
+                            epsilon=1e-8,
+                            l1_coeff=0.0,
+                            l2_coeff=0.0,
+                            grad_clip=0.0):
+    """
+    Train the FNN using mini-batch RMSprop.
+
+    beta: decay rate for the running average of squared gradients
+    """
+
+    inputs, targets, n_samples = _prepare_data(network, inputs, targets)
+
+    # Running average of squared gradients for each layer
+    r = [np.zeros_like(W) for W in network.weights_list]
+
+    for epoch in range(epochs):
+
+        # Shuffle data each epoch
+        indices = np.random.permutation(n_samples)
+
+        for start in range(0, n_samples, batch_size):
+
+            batch_idx = indices[start:start + batch_size]
+
+            x_batch = inputs[:, batch_idx]
+            y_batch = targets[:, batch_idx]
+            B = x_batch.shape[1]
+
+            # Forward / Backward on this batch
+            z_values, a_values = network.forward(x_batch)
+            grad_W = network.backward(z_values, a_values, y_batch, loss_derivative)
+
+            # RMSprop update per layer
+            for i in range(len(network.weights_list)):
+
+                g = grad_W[i] / B
+                W = network.weights_list[i]
+
+                # L2 regularization (no bias)
+                if l2_coeff != 0.0:
+                    reg = l2_coeff * W.copy()
+                    reg[:, 0] = 0.0
+                    g += reg
+
+                # L1 regularization (no bias)
+                if l1_coeff != 0.0:
+                    reg_l1 = l1_coeff * np.sign(W.copy())
+                    reg_l1[:, 0] = 0.0
+                    g += reg_l1
+
+                if grad_clip != 0.0:
+                    g = SuppFunctions.clip_gradient(g, grad_clip)
+
+                # Update running average of squared gradients
+                r[i] = beta * r[i] + (1.0 - beta) * (g * g)
+
+                # RMSprop parameter update
+                update = learning_rate * g / (np.sqrt(r[i]) + epsilon)
+
+                # Gradient descent step
+                network.weights_list[i] = W - update
+
+    return network
+
+
+# 3. MINI-BATCH NESTEROV ACCELERATED GRADIENT (NAG)
+
+def train_minibatch_nag(network,
+                        inputs,
+                        targets,
+                        epochs,
+                        learning_rate,
+                        batch_size,
+                        loss_derivative=SoftmaxCrossEntropyDerivative,
+                        momentum=0.9,
+                        l1_coeff=0.0,
+                        l2_coeff=0.0,
+                        grad_clip=0.0):
+    """
+    Train the FNN using mini-batch Nesterov Accelerated Gradient (NAG).
+    """
+
+    inputs, targets, n_samples = _prepare_data(network, inputs, targets)
+
+    # Velocity (momentum) for each layer, same shape as weights
+    v = [np.zeros_like(W) for W in network.weights_list]
+
+    for epoch in range(epochs):
+
+        # Shuffle data each epoch
+        indices = np.random.permutation(n_samples)
+
+        for start in range(0, n_samples, batch_size):
+
+            batch_idx = indices[start:start + batch_size]
+
+            x_batch = inputs[:, batch_idx]
+            y_batch = targets[:, batch_idx]
+            B = x_batch.shape[1]
+
+            # 1. Look-ahead step: w_lookahead = w + momentum * v
+            for i in range(len(network.weights_list)):
+                network.weights_list[i] = network.weights_list[i] + momentum * v[i]
+
+            # 2. Forward / Backward at look-ahead weights
+            z_values, a_values = network.forward(x_batch)
+            grad_W = network.backward(z_values, a_values, y_batch, loss_derivative)
+
+            # 3. Update velocity and weights (Nesterov rule)
+            for i in range(len(network.weights_list)):
+
+                g = grad_W[i] / B
+                W = network.weights_list[i]
+
+                # L2 regularization (no bias)
+                if l2_coeff != 0.0:
+                    reg = l2_coeff * W.copy()
+                    reg[:, 0] = 0.0
+                    g += reg
+
+                # L1 regularization (no bias)
+                if l1_coeff != 0.0:
+                    reg_l1 = l1_coeff * np.sign(W.copy())
+                    reg_l1[:, 0] = 0.0
+                    g += reg_l1
+
+                if grad_clip != 0.0:
+                    g = SuppFunctions.clip_gradient(g, grad_clip)
+
+                # Save previous velocity
+                v_prev = v[i].copy()
+
+                # NAG velocity update:
+                v[i] = momentum * v[i] - learning_rate * g
+
+                # We are currently at w_look = w_t + momentum * v_prev.
+                # We want final w_{t+1} = w_t + v_new.
+                # => w_{t+1} = w_look + (v_new - momentum * v_prev)
+                network.weights_list[i] = W + (v[i] - momentum * v_prev)
+
+    return network
+
+
+# 4. MINI-BATCH ADAM OPTIMIZER
 
 def train_minibatch_adam(network,
                          inputs,
@@ -77,23 +316,19 @@ def train_minibatch_adam(network,
                          epochs,
                          learning_rate,
                          batch_size,
-                         loss_derivative=MeanSquaredErrorDerivative,
+                         loss_derivative=SoftmaxCrossEntropyDerivative,
                          beta1=0.9,
                          beta2=0.999,
-                         epsilon=1e-8):
- 
+                         epsilon=1e-8,
+                         l1_coeff=0.0,
+                         l2_coeff=0.0,
+                         grad_clip=0.0):
 
-    n_samples = inputs.shape[1]
+    inputs, targets, n_samples = _prepare_data(network, inputs, targets)
 
-    
     # Initialize Adam moment vectors for each layer.
-    #
-    # Shapes are identical to corresponding weight matrices.
-    # m[i]: first moment (mean of gradients)
-    # v[i]: second moment (mean of squared gradients)
-    
-    m = [np.zeros_like(W) for W in network.weights_list]
-    v = [np.zeros_like(W) for W in network.weights_list]
+    m = [np.zeros_like(W) for W in network.weights_list]  # first moment
+    v = [np.zeros_like(W) for W in network.weights_list]  # second moment
 
     t = 0  # Adam time step counter (increments per batch)
 
@@ -111,51 +346,50 @@ def train_minibatch_adam(network,
             # Extract batch: shapes (features, B) and (outputs, B)
             x_batch = inputs[:, batch_idx]
             y_batch = targets[:, batch_idx]
+            B = x_batch.shape[1]
 
-            # Forward and Backward on this batch 
+            # Forward and Backward on this batch
             z_values, a_values = network.forward(x_batch)
             grad_W = network.backward(z_values, a_values, y_batch, loss_derivative)
-
-            B = x_batch.shape[1]  # batch size (maybe smaller on last batch)
 
             # Increment Adam time step
             t += 1
 
-            
             # Adam update for each layer
-            # 
             for i in range(len(network.weights_list)):
 
-                # Convert summed gradient to averaged gradient
                 g = grad_W[i] / B
+                W = network.weights_list[i]
 
-              
+                # L2 regularization (no bias)
+                if l2_coeff != 0.0:
+                    reg = l2_coeff * W.copy()
+                    reg[:, 0] = 0.0
+                    g += reg
 
-            
+                # L1 regularization (no bias)
+                if l1_coeff != 0.0:
+                    reg_l1 = l1_coeff * np.sign(W.copy())
+                    reg_l1[:, 0] = 0.0
+                    g += reg_l1
+
+                if grad_clip != 0.0:
+                    g = SuppFunctions.clip_gradient(g, grad_clip)
+
                 # 1. Update biased first moment estimate
-              
                 m[i] = beta1 * m[i] + (1.0 - beta1) * g
 
-                
                 # 2. Update biased second moment estimate
-                
                 v[i] = beta2 * v[i] + (1.0 - beta2) * (g * g)
 
-            
-                # 3. Bias corrections:
-             
-                
+                # 3. Bias corrections
                 m_hat = m[i] / (1.0 - beta1 ** t)
                 v_hat = v[i] / (1.0 - beta2 ** t)
 
-                
-                # 4. Compute parameter update:
-                
+                # 4. Compute parameter update
                 update = learning_rate * m_hat / (np.sqrt(v_hat) + epsilon)
 
-                
                 # 5. Apply update (gradient descent direction)
-                
-                network.weights_list[i] -= update
-    #
+                network.weights_list[i] = W - update
+
     return network

@@ -1,0 +1,18 @@
+2025-12-01 20:30:34,834 INFO    MainThread:12724 [wandb_init.py:setup_run_log_directory():713] Logging user logs to c:\Users\Notandi\Desktop\comp\FNN-from-scratch\wandb\run-20251201_203034-8egc5vwy\logs\debug.log
+2025-12-01 20:30:34,835 INFO    MainThread:12724 [wandb_init.py:setup_run_log_directory():714] Logging internal logs to c:\Users\Notandi\Desktop\comp\FNN-from-scratch\wandb\run-20251201_203034-8egc5vwy\logs\debug-internal.log
+2025-12-01 20:30:34,835 INFO    MainThread:12724 [wandb_init.py:init():840] calling init triggers
+2025-12-01 20:30:34,835 INFO    MainThread:12724 [wandb_init.py:init():845] wandb.init called with sweep_config: {}
+config: {'train_path': 'Data/fashion-mnist_train.csv', 'test_path': 'Data/fashion-mnist_test.csv', 'num_hidden_layers': 3, 'n_hidden_units': [512, 256, 128], 'activation_hidden': 'relu', 'activation_output': 'softmax_vec', 'weights_init': 'HeNor', 'epochs': 20, 'learning_rate': 0.0005, 'batch_size': 128, 'optimizer': 'adam', 'momentum': 0.9, 'rmsprop_beta': 0.9, 'beta1': 0.9, 'beta2': 0.999, 'epsilon': 1e-08, 'l1_coeff': 0.0, 'l2_coeff': 0.0, 'val_fraction': 0.1, '_wandb': {}}
+2025-12-01 20:30:37,056 INFO    MainThread:12724 [wandb_init.py:init():888] starting backend
+2025-12-01 20:30:37,056 INFO    MainThread:12724 [wandb_init.py:init():891] sending inform_init request
+2025-12-01 20:30:37,059 INFO    MainThread:12724 [wandb_init.py:init():899] backend started and connected
+2025-12-01 20:30:37,063 INFO    MainThread:12724 [wandb_run.py:_label_probe_notebook():1323] probe notebook
+2025-12-01 20:30:37,063 INFO    MainThread:12724 [wandb_init.py:init():969] updated telemetry
+2025-12-01 20:30:37,111 INFO    MainThread:12724 [wandb_init.py:init():993] communicating run to backend with 90.0 second timeout
+2025-12-01 20:30:37,725 INFO    MainThread:12724 [wandb_init.py:init():1040] starting run threads in backend
+2025-12-01 20:30:37,879 INFO    MainThread:12724 [wandb_run.py:_console_start():2504] atexit reg
+2025-12-01 20:30:37,879 INFO    MainThread:12724 [wandb_run.py:_redirect():2352] redirect: wrap_raw
+2025-12-01 20:30:37,880 INFO    MainThread:12724 [wandb_run.py:_redirect():2421] Wrapping output streams.
+2025-12-01 20:30:37,880 INFO    MainThread:12724 [wandb_run.py:_redirect():2444] Redirects installed.
+2025-12-01 20:30:37,881 INFO    MainThread:12724 [wandb_init.py:init():1080] run started, returning control to user process
+2025-12-01 20:30:37,881 INFO    MainThread:12724 [wandb_watch.py:_watch():68] Watching

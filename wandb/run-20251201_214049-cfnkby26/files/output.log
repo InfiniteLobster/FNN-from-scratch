@@ -1,0 +1,16 @@
+Epoch 1/15 | Train loss 2.5254 acc 0.0868 | Val loss 2.5175 acc 0.0900
+Epoch 2/15 | Train loss 2.5146 acc 0.0871 | Val loss 2.5069 acc 0.0920
+Epoch 3/15 | Train loss 2.5043 acc 0.0879 | Val loss 2.4968 acc 0.0928
+Epoch 4/15 | Train loss 2.4944 acc 0.0884 | Val loss 2.4871 acc 0.0945
+Epoch 5/15 | Train loss 2.4849 acc 0.0894 | Val loss 2.4778 acc 0.0955
+Epoch 6/15 | Train loss 2.4758 acc 0.0902 | Val loss 2.4688 acc 0.0960
+Epoch 7/15 | Train loss 2.4669 acc 0.0917 | Val loss 2.4601 acc 0.0972
+Epoch 8/15 | Train loss 2.4583 acc 0.0929 | Val loss 2.4516 acc 0.0978
+Epoch 9/15 | Train loss 2.4500 acc 0.0946 | Val loss 2.4434 acc 0.0987
+Epoch 10/15 | Train loss 2.4419 acc 0.0963 | Val loss 2.4354 acc 0.0995
+Epoch 11/15 | Train loss 2.4340 acc 0.0982 | Val loss 2.4276 acc 0.1023
+Epoch 12/15 | Train loss 2.4262 acc 0.1003 | Val loss 2.4200 acc 0.1050
+Epoch 13/15 | Train loss 2.4187 acc 0.1025 | Val loss 2.4126 acc 0.1080
+Epoch 14/15 | Train loss 2.4113 acc 0.1044 | Val loss 2.4052 acc 0.1097
+Epoch 15/15 | Train loss 2.4040 acc 0.1064 | Val loss 2.3981 acc 0.1122
+[RUN DONE] opt=sgd_momentum, act=relu, layers=3, width=256 -> test_acc=0.1092

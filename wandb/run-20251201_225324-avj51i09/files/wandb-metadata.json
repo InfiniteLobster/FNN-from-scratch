@@ -1,0 +1,28 @@
+{
+  "os": "Windows-10-10.0.19045-SP0",
+  "python": "CPython 3.13.7",
+  "startedAt": "2025-12-01T21:53:24.541500Z",
+  "program": "c:\\Users\\Notandi\\Desktop\\comp\\FNN-from-scratch\\FNNTest.ipynb",
+  "codePath": "c:\\Users\\Notandi\\Desktop\\comp\\FNN-from-scratch\\FNNTest.ipynb",
+  "codePathLocal": "FNNTest.ipynb",
+  "git": {
+    "remote": "https://github.com/InfiniteLobster/FNN-from-scratch.git",
+    "commit": "61e28bb9a69ed71583c388a81ec48d923aaf8943"
+  },
+  "email": "thludviksson17@gmail.com",
+  "root": "c:\\Users\\Notandi\\Desktop\\comp\\FNN-from-scratch",
+  "host": "IS-PC24S4HN",
+  "executable": "c:\\Users\\Notandi\\AppData\\Local\\Programs\\Python\\Python313\\python.exe",
+  "cpu_count": 4,
+  "cpu_count_logical": 8,
+  "disk": {
+    "/": {
+      "total": "506333229056",
+      "used": "318558941184"
+    }
+  },
+  "memory": {
+    "total": "16868499456"
+  },
+  "writerId": "bgnjugfp26aw1g6mczcv2oi1pz73gawe"
+}

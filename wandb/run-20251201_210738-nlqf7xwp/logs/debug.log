@@ -1,0 +1,27 @@
+2025-12-01 21:07:38,566 INFO    MainThread:28932 [wandb_setup.py:_flush():80] Current SDK version is 0.23.0
+2025-12-01 21:07:38,566 INFO    MainThread:28932 [wandb_setup.py:_flush():80] Configure stats pid to 28932
+2025-12-01 21:07:38,567 INFO    MainThread:28932 [wandb_setup.py:_flush():80] Loading settings from C:\Users\Notandi\.config\wandb\settings
+2025-12-01 21:07:38,567 INFO    MainThread:28932 [wandb_setup.py:_flush():80] Loading settings from C:\Users\Notandi\Desktop\comp\FNN-from-scratch\wandb\settings
+2025-12-01 21:07:38,567 INFO    MainThread:28932 [wandb_setup.py:_flush():80] Loading settings from environment variables
+2025-12-01 21:07:38,567 INFO    MainThread:28932 [wandb_init.py:setup_run_log_directory():713] Logging user logs to C:\Users\Notandi\Desktop\comp\FNN-from-scratch\wandb\run-20251201_210738-nlqf7xwp\logs\debug.log
+2025-12-01 21:07:38,568 INFO    MainThread:28932 [wandb_init.py:setup_run_log_directory():714] Logging internal logs to C:\Users\Notandi\Desktop\comp\FNN-from-scratch\wandb\run-20251201_210738-nlqf7xwp\logs\debug-internal.log
+2025-12-01 21:07:38,568 INFO    MainThread:28932 [wandb_init.py:init():840] calling init triggers
+2025-12-01 21:07:38,568 INFO    MainThread:28932 [wandb_init.py:init():845] wandb.init called with sweep_config: {'activation_hidden': 'relu', 'batch_size': 128, 'hidden_width': 256, 'l2_coeff': 0, 'learning_rate': 0.0001, 'num_hidden_layers': 3, 'optimizer': 'adam', 'weights_init': 'HeNor'}
+config: {'train_path': 'Data/fashion-mnist_train.csv', 'test_path': 'Data/fashion-mnist_test.csv', 'num_hidden_layers': 3, 'hidden_width': 256, 'activation_hidden': 'relu', 'activation_output': 'softmax_vec', 'weights_init': 'HeNor', 'epochs': 15, 'learning_rate': 0.0005, 'batch_size': 128, 'optimizer': 'adam', 'momentum': 0.9, 'rmsprop_beta': 0.9, 'beta1': 0.9, 'beta2': 0.999, 'epsilon': 1e-08, 'l1_coeff': 0.0, 'l2_coeff': 0.0, 'val_fraction': 0.1, '_wandb': {}}
+2025-12-01 21:07:38,568 INFO    MainThread:28932 [wandb_init.py:init():888] starting backend
+2025-12-01 21:07:41,068 INFO    MainThread:28932 [wandb_init.py:init():891] sending inform_init request
+2025-12-01 21:07:41,100 INFO    MainThread:28932 [wandb_init.py:init():899] backend started and connected
+2025-12-01 21:07:41,100 INFO    MainThread:28932 [wandb_run.py:_config_callback():1385] config_cb None None {'activation_hidden': 'relu', 'batch_size': 128, 'hidden_width': 256, 'l2_coeff': 0, 'learning_rate': 0.0001, 'num_hidden_layers': 3, 'optimizer': 'adam', 'weights_init': 'HeNor'}
+2025-12-01 21:07:41,101 INFO    MainThread:28932 [wandb_init.py:init():969] updated telemetry
+2025-12-01 21:07:41,145 INFO    MainThread:28932 [wandb_init.py:init():993] communicating run to backend with 90.0 second timeout
+2025-12-01 21:07:41,724 INFO    MainThread:28932 [wandb_init.py:init():1040] starting run threads in backend
+2025-12-01 21:07:41,874 INFO    MainThread:28932 [wandb_run.py:_console_start():2504] atexit reg
+2025-12-01 21:07:41,874 INFO    MainThread:28932 [wandb_run.py:_redirect():2352] redirect: wrap_raw
+2025-12-01 21:07:41,874 INFO    MainThread:28932 [wandb_run.py:_redirect():2421] Wrapping output streams.
+2025-12-01 21:07:41,875 INFO    MainThread:28932 [wandb_run.py:_redirect():2444] Redirects installed.
+2025-12-01 21:07:41,879 INFO    MainThread:28932 [wandb_init.py:init():1080] run started, returning control to user process
+2025-12-01 21:09:44,501 INFO    MainThread:28932 [wandb_run.py:_finish():2270] finishing run thludviksson17-danmarks-tekniske-universitet-dtu/FNN-from-scratch/nlqf7xwp
+2025-12-01 21:09:44,502 INFO    MainThread:28932 [wandb_run.py:_atexit_cleanup():2469] got exitcode: 0
+2025-12-01 21:09:44,503 INFO    MainThread:28932 [wandb_run.py:_restore():2451] restore
+2025-12-01 21:09:44,503 INFO    MainThread:28932 [wandb_run.py:_restore():2457] restore done
+2025-12-01 21:09:45,638 INFO    MainThread:28932 [wandb_run.py:_footer_sync_info():3853] logging synced files
