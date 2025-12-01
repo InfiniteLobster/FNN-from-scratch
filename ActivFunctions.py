@@ -44,12 +44,9 @@ def der_softmax(x):
     return 0
 
 #Softmax (vector/array input)
-def softmax_vec(x):
-    """
-    Softmax supports vector or column-vector input.
-    Uses numerical stabilization.
-    """
-    x_shifted = x - np.max(x, axis=0, keepdims=True)
+def softmax_vec(x):#
+    #
+    x_shifted = x - np.max(x, axis=0, keepdims=True)#keepdims=True keeps shape for broadcasting(which should be impossible due to failsafes in previous steps)
     exp_values = np.exp(x_shifted)
     return exp_values / np.sum(exp_values, axis=0, keepdims=True)
 
