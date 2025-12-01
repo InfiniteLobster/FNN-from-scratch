@@ -212,7 +212,7 @@ class FNN:
             #variables necessery for current layer propagations are assigned to local variables for readability
             weights_array = weights_list[iLayer]
             activ_functions_list = activ_functions_list_list[iLayer]
-            input = a[-1]
+            input = a_all[-1]
             #bias input is added to input vector/array to account for bias, which is 0 weight
             input_ready = addBiasInput(input)
             #it needs to be verified if matrix multiplication can be performed. Theoretically it should be strictly necessery only for first input as rest should be accounted by architecture, but it is present for all if some undetected mistake was made in architecture creation.

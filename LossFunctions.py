@@ -33,28 +33,19 @@ def BinaryCrossEntropyDerivative(targets, predictions, eps=1e-12):
 # ================================================
 # Softmax + Cross-Entropy (for multi-class)
 # ================================================
-def SoftmaxCrossEntropy(target_one_hot, logits):
-    """
-    logits: raw scores from last layer (before softmax)
-    target_one_hot: one-hot encoded targets
-    """
-    # Numerical stability: subtract max for each column
-    shifted = logits - np.max(logits, axis=0, keepdims=True)
-    exp_vals = np.exp(shifted)
-    softmax_vals = exp_vals / np.sum(exp_vals, axis=0, keepdims=True)
-
-    # Cross-entropy loss
-    loss = -np.sum(target_one_hot * np.log(softmax_vals + 1e-12))
-    return loss / logits.shape[1]
+def SoftmaxCrossEntropy(target_one_hot, softmax_vals):#in this implementation softmax is calculated in layer, but cross entropy should only be used with softmax in output layer
+    # Cross-entropy loss calculation
+    loss_sum = -np.sum(target_one_hot * np.log(softmax_vals + 1e-12), axis = 0)# 1e-12 is added for numerical stability
+    loss_mean = np.mean(loss_sum)
+    #returning loss
+    return loss_mean
 
 
-def SoftmaxCrossEntropyDerivative(target_one_hot, logits):
-    """
-    Efficient gradient:
-    grad = softmax(logits) - target_one_hot
-    """
-    shifted = logits - np.max(logits, axis=0, keepdims=True)
-    exp_vals = np.exp(shifted)
-    softmax_vals = exp_vals / np.sum(exp_vals, axis=0, keepdims=True)
-
-    return (softmax_vals - target_one_hot)
+def SoftmaxCrossEntropyDerivative(target_one_hot, softmax_vals):
+    #for the batch input case division by number is necessery
+    shapeInput = softmax_vals.shape
+    num_batch = shapeInput[1]
+    #derivative calculation
+    der_loss = (softmax_vals - target_one_hot)/num_batch
+    #returning output
+    return der_loss

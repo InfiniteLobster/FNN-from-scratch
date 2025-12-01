@@ -1,7 +1,7 @@
 import numpy as np
-from TrainingFunctions import backwards#to delete after transform
 from LossFunctions import *
-import SuppFunctions  # for optional gradient clipping
+from SuppFunctions import *
+
 
 
 
@@ -14,7 +14,8 @@ def train_minibatch_sgd(network,
                         epochs,
                         learning_rate,
                         batch_size,
-                        loss_derivative=MeanSquaredErrorDerivative):
+                        loss_derivative,
+                        grad_clip = 0):
     """
     Train the FNN using mini-batch SGD.
 
@@ -23,37 +24,48 @@ def train_minibatch_sgd(network,
     """
 
     # Number of training samples 
-    n_samples = inputs.shape[1]
-
+    n_samples = inputs.shape[1] 
+    #sometimes Np due to its mechanics transposes the array. So far it happend only for targets. This is fix that resolves this issue
+    if(targets.shape[0] != network.weights_list[-1].shape[0]):
+        targets = targets.T
     # Loop through the dataset
     for epoch in range(epochs):
-
         # Shuffle sample indices so that batches are random each epoch
         indices = np.random.permutation(n_samples)
-
+        #preparing range and getting its last value for bacth loop
+        range_batches = range(0, n_samples, batch_size)
+        last_value = (((n_samples-1)//batch_size)*batch_size)# n_samples/batch_size gives amount of steps that fits into range, -1 is used to not accidentely "go over" the range as it is < n_samples. Multiplying gives precise number
         # Process the dataset in chunks of size batch_size
-        for start in range(0, n_samples, batch_size):
-
-            # Integer indices for this batch
-            batch_idx = indices[start:start + batch_size]
-
-            # Prepare a list of accumulated gradients, one array per layer.
-            # Each is initialized as zeros with the same shape as that layer's weights.
+        for start in range_batches:
+            #getting indices for this batch
+            batch_idx = indices[start:(start + batch_size)]
             #slicing current batch data
-            input_sample = inputs[:,batch_idx:batch_idx+1]#should also work without ':batch_idx+1' in this implementation, but there is no testing for this, so I can't check
-            target_sample = targets[:,batch_idx:batch_idx+1]
+            input_sample = inputs[:,batch_idx]
+            target_sample = targets[:,batch_idx]
             #propagation of input(-s in case of batches) through network
             out = network.forward(input_sample)
             #propagating error backwards through network
             grad_W = network.backward(out[0],out[1],target_sample,loss_derivative)
-            # The last mini-batch may contain fewer than 'batch_size' samples,
-            # so we compute the effective size explicitly.
-            batch_size_effective = len(batch_idx)
-
-            # Update each layer's weight matrix 
+            #As last mini-batch may contain fewer than 'batch_size' samples, the size of batch has to be computed as it is not the same every time (checking index of)
+            if(start == last_value):
+                batch_size_effective = len(batch_idx)
+            else:
+                batch_size_effective = batch_size
+            # iterating through weights arrays (of layers) to update each layer's weight matrix 
             for i in range(len(network.weights_list)):
-                # Average gradient over the mini-batch
+                #getting current layer
+                weights_array = network.weights_list[i]
+                # Average gradient over the mini-batch for current layer
                 grad_avg = grad_W[i] / batch_size_effective
+                #gradient clipping if selected
+                if(grad_clip != 0):
+                    grad_avg = clip_gradient(grad_avg,grad_clip)
+                #updating weights
+                weights_array -= learning_rate * grad_avg
+                #assignign updates weights to network property
+                network.weights_list[i] = weights_array
+    #returning trained network
+    return network
 
 
 # 2. MINI-BATCH ADAM OPTIMIZER
@@ -145,3 +157,5 @@ def train_minibatch_adam(network,
                 # 5. Apply update (gradient descent direction)
                 
                 network.weights_list[i] -= update
+    #
+    return network
