@@ -193,3 +193,28 @@ def testInputFormat(base_list,network):
             return True
         else:
             return False
+#this function one hot encodes classes in given file
+def one_hot_encode(labels, num_classes):
+    #one hot encoding work differently when classes are integers or strings(descriptive)
+    if((labels.dtype == object)):
+        #getting unique labels for encoding 
+        unique = np.unique(labels)
+        #first each label needs to be mapped to number(integer)
+        maping = {des:val for val,des in enumerate(unique)}
+        #
+        shapeLabels = labels.shape
+        one_hot = np.zeros((num_classes,shapeLabels[1]))
+        for iExample in range(shapeLabels[1]):
+            #
+            value = labels[0,iExample]
+            #
+            index = maping[value]
+            #
+            one_hot[index,iExample] = 1
+    else:
+        labels_int = labels.astype(int)
+
+        one_hot = np.eye(num_classes)[labels_int].T #transpose so that shape is (num_classes, n_samples)
+    #
+    return one_hot
+#this function calculates 
