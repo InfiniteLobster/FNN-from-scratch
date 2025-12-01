@@ -1,0 +1,13 @@
+Traceback (most recent call last):
+  File "c:\Users\Notandi\Desktop\comp\FNN-from-scratch\train_sweep.py", line 302, in <module>
+    main()
+    ~~~~^^
+  File "c:\Users\Notandi\Desktop\comp\FNN-from-scratch\train_sweep.py", line 257, in main
+    net = train_one_epoch(net, X_train, Y_train, cfg)
+  File "c:\Users\Notandi\Desktop\comp\FNN-from-scratch\train_sweep.py", line 180, in train_one_epoch
+    return train_minibatch_adam(
+        network=net,
+    ...<10 lines>...
+        l2_coeff=cfg.l2_coeff,
+    )
+TypeError: train_minibatch_adam() got an unexpected keyword argument 'l1_coeff'. Did you mean 'l2_coeff'?

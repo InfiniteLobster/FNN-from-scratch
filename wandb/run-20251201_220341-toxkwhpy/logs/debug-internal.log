@@ -1,0 +1,12 @@
+{"time":"2025-12-01T22:03:44.3820912+01:00","level":"INFO","msg":"stream: starting","core version":"0.23.0"}
+{"time":"2025-12-01T22:03:44.692794+01:00","level":"INFO","msg":"stream: created new stream","id":"toxkwhpy"}
+{"time":"2025-12-01T22:03:44.6933008+01:00","level":"INFO","msg":"handler: started","stream_id":"toxkwhpy"}
+{"time":"2025-12-01T22:03:44.6949836+01:00","level":"INFO","msg":"stream: started","id":"toxkwhpy"}
+{"time":"2025-12-01T22:03:44.6949836+01:00","level":"INFO","msg":"writer: started","stream_id":"toxkwhpy"}
+{"time":"2025-12-01T22:03:44.6949836+01:00","level":"INFO","msg":"sender: started","stream_id":"toxkwhpy"}
+{"time":"2025-12-01T22:05:45.418125+01:00","level":"INFO","msg":"fileTransfer: Close: file transfer manager closed"}
+{"time":"2025-12-01T22:05:45.9192108+01:00","level":"INFO","msg":"handler: operation stats","stats":{}}
+{"time":"2025-12-01T22:05:45.9255453+01:00","level":"INFO","msg":"stream: closing","id":"toxkwhpy"}
+{"time":"2025-12-01T22:05:45.9255453+01:00","level":"INFO","msg":"handler: closed","stream_id":"toxkwhpy"}
+{"time":"2025-12-01T22:05:45.9260828+01:00","level":"INFO","msg":"sender: closed","stream_id":"toxkwhpy"}
+{"time":"2025-12-01T22:05:45.9260828+01:00","level":"INFO","msg":"stream: closed","id":"toxkwhpy"}
