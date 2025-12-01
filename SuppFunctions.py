@@ -217,3 +217,4 @@ def one_hot_encode(labels, num_classes):
         one_hot = np.eye(num_classes)[labels_int].T #transpose so that shape is (num_classes, n_samples)
     #
     return one_hot
+#this function calculates 
