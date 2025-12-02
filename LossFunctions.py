@@ -42,10 +42,6 @@ def SoftmaxCrossEntropy(target_one_hot, softmax_vals):#in this implementation so
 
 
 def SoftmaxCrossEntropyDerivative(target_one_hot, softmax_vals):
-    #for the batch input case division by number is necessery
-    shapeInput = softmax_vals.shape
-    num_batch = shapeInput[1]
-    #derivative calculation
-    der_loss = (softmax_vals - target_one_hot)/num_batch
-    #returning output
-    return der_loss
+  
+    return (softmax_vals - target_one_hot)
+

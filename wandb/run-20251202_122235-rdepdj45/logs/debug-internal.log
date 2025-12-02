@@ -1,0 +1,12 @@
+{"time":"2025-12-02T12:22:37.9915211+01:00","level":"INFO","msg":"stream: starting","core version":"0.23.0"}
+{"time":"2025-12-02T12:22:38.305062+01:00","level":"INFO","msg":"stream: created new stream","id":"rdepdj45"}
+{"time":"2025-12-02T12:22:38.305062+01:00","level":"INFO","msg":"handler: started","stream_id":"rdepdj45"}
+{"time":"2025-12-02T12:22:38.3068084+01:00","level":"INFO","msg":"stream: started","id":"rdepdj45"}
+{"time":"2025-12-02T12:22:38.3068084+01:00","level":"INFO","msg":"writer: started","stream_id":"rdepdj45"}
+{"time":"2025-12-02T12:22:38.3068084+01:00","level":"INFO","msg":"sender: started","stream_id":"rdepdj45"}
+{"time":"2025-12-02T12:24:04.8394105+01:00","level":"INFO","msg":"fileTransfer: Close: file transfer manager closed"}
+{"time":"2025-12-02T12:24:05.1113753+01:00","level":"INFO","msg":"handler: operation stats","stats":{}}
+{"time":"2025-12-02T12:24:05.1189269+01:00","level":"INFO","msg":"stream: closing","id":"rdepdj45"}
+{"time":"2025-12-02T12:24:05.1189269+01:00","level":"INFO","msg":"handler: closed","stream_id":"rdepdj45"}
+{"time":"2025-12-02T12:24:05.1262169+01:00","level":"INFO","msg":"sender: closed","stream_id":"rdepdj45"}
+{"time":"2025-12-02T12:24:05.1262169+01:00","level":"INFO","msg":"stream: closed","id":"rdepdj45"}
