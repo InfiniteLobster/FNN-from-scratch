@@ -6,3 +6,13 @@ wandb/run-20251130_012523-v43a7f5w/logs/debug-internal.log
 wandb/run-20251130_012523-v43a7f5w/run-v43a7f5w.wandb
 wandb/run-20251130_200413-2k5w21gx/logs/debug-internal.log
 wandb/run-20251130_200413-2k5w21gx/run-2k5w21gx.wandb
+__pycache__/
+*.pyc
+
+/__pycache__
+/__pycache__
+__pycache__/LossFunctions.cpython-313.pyc
+__pycache__/
+*.pyc
+wandb/
+
