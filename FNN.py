@@ -3,7 +3,6 @@ from Layer import *
 from InitFunctions import  *
 from SuppFunctions import  *
 from ErrorClasses import *
-from ActivFunctions import softmax, softmax_vec
 
 class FNN:
 #instance attributes
@@ -259,21 +258,8 @@ class FNN:
             dL_dy = loss_derivative(targets,a_output)#it should be always possible to calculate loss by vectors
         else:#if shapes does not match, than given data is not correct, backpropagation can not proceed and proper error should be thrown.
             raise NotSupportedInputGiven("backpropagation","Network output and ground truth does not match")
-        #for SoftmaxCrossEntropyDerivative the derivative already includes division by batch size;
-        #optimizers divide by batch size once again, so here we rescale to avoid effective 1/B^2
-        if loss_derivative.__name__ == "SoftmaxCrossEntropyDerivative":
-            batch_size = a_output.shape[1]  # number of samples in batch
-            dL_dy = dL_dy * batch_size
         #gradient of loss to the pre-activ calculation
-        #special case: softmax (or softmax_vec) + cross-entropy -> dL_dy is already derivative w.r.t. logits,
-        #so we MUST NOT multiply by activation derivative again
-        first_act = activ_functions_list[0]
-        if ((first_act.__code__.co_code == softmax.__code__.co_code) or
-            (first_act.__code__.co_code == softmax_vec.__code__.co_code)) and \
-                (loss_derivative.__name__ == "SoftmaxCrossEntropyDerivative"):
-            delta = dL_dy
-        else:
-            delta = getDelta(dL_dy,z_output,activ_functions_list) 
+        delta = getDelta(dL_dy,z_output,activ_functions_list) 
         #propagating loss through network
         for layer_index in reversed(range(num_layers)):
             #getting input to current layer
@@ -303,7 +289,6 @@ class FNN:
         grad_W_out = grad_W[::-1]
         #returning output of backpropagation
         return grad_W_out
-
     #FNN deconstruction into Layer class objects
     def decomposeIntoLayers(self):
         #getting properties of FNN object into variables for code readability
