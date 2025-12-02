@@ -12,3 +12,7 @@ __pycache__/
 /__pycache__
 /__pycache__
 __pycache__/LossFunctions.cpython-313.pyc
+__pycache__/
+*.pyc
+wandb/
+
