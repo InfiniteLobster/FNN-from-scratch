@@ -260,18 +260,13 @@ class FNN:
             dL_dy = loss_derivative(targets,a_output)#it should be always possible to calculate loss by vectors
         else:#if shapes does not match, than given data is not correct, backpropagation can not proceed and proper error should be thrown.
             raise NotSupportedInputGiven("backpropagation","Network output and ground truth does not match")
-                #for SoftmaxCrossEntropyDerivative the derivative already includes division by batch size;
-        #optimizers divide by batch size once again, so here we rescale to avoid effective 1/B^2
-        if loss_derivative.__name__ == "SoftmaxCrossEntropyDerivative":
-            batch_size = a_output.shape[1]  # number of samples in batch
-            dL_dy = dL_dy * batch_size
-                    #special case: softmax (or softmax_vec) + cross-entropy -> dL_dy is already derivative w.r.t. logits,
-        #so we MUST NOT multiply by activation derivative again
-        first_act = activ_functions_list[0]
-        if ((first_act.__code__.co_code == softmax.__code__.co_code) or
-            (first_act.__code__.co_code == softmax_vec.__code__.co_code)) and \
-                (loss_derivative.__name__ == "SoftmaxCrossEntropyDerivative"):
+        #in case of softmax calculating from probabilities is unstable, for this reason gradient of loss is calculated through logits, which allows for stable and effective training. 
+        if(((activ_functions_list[0].__code__.co_code == softmax.__code__.co_code)) &  (loss_derivative.__name__ == "SoftmaxCrossEntropyDerivative")):
+            #the proper calculation in case of SoftmaxCrossEntropy is already taken into account in loss_derivative design, so there is only need to pass results
             delta = dL_dy
+            #optimizers divide by batch size once again, so here we rescale to avoid effective 1/B^2 
+            batch_size = a_output.shape[1]
+            delta = delta * batch_size
         else:
             delta = getDelta(dL_dy,z_output,activ_functions_list) 
         #propagating loss through network

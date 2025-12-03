@@ -28,6 +28,22 @@ def BinaryCrossEntropy(targets, predictions, eps=1e-12):
 def BinaryCrossEntropyDerivative(targets, predictions, eps=1e-12):
     predictions = np.clip(predictions, eps, 1 - eps)
     return (predictions - targets) / (predictions * (1 - predictions))
+#Cross-Entropy
+def CrossEntropy(targets, predictions):
+    #
+    #prob = predictions[np.arrange(len(targets)),targets]
+    #
+    loss = -np.sum(targets * np.log(predictions))
+    #
+    return loss
+def CrossEntropyDerivative(targets, predictions):
+    #
+    #grad = np.zeros_like(predictions)
+    #grad[targets,np.arrange(predictions.shape[1])] = -1 / predictions[targets,np.arrange(predictions.shape[1])]
+    #
+    output = -targets / (predictions +1e-15)
+    #
+    return output
 
 
 # ================================================

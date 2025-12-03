@@ -44,17 +44,24 @@ def der_softmax(x):
     return 0
 
 #Softmax (vector/array input)
-def softmax_vec(x):#
-    #
-    x_shifted = x - np.max(x, axis=0, keepdims=True)#keepdims=True keeps shape for broadcasting(which should be impossible due to failsafes in previous steps)
+def softmax_vec(x):
+    #getting maximal value in each example (column) to ensure numerical stability in next step
+    x_max_val = np.max(x, axis=0, keepdims=True)#keepdims=True keeps shape for broadcasting(which should be impossible due to failsafes in previous steps)
+    #maximal (largest) value is substracted to avoid numerical overflow
+    x_shifted = x - x_max_val
+    #values are taken into exponential to get probabilities (yet to be valid probabilities)
     exp_values = np.exp(x_shifted)
-    return exp_values / np.sum(exp_values, axis=0, keepdims=True)
+    #getting sum of all values in each example so valid probabilities (in range of 0-1) can be obtained
+    x_sum = np.sum(exp_values, axis=0, keepdims=True)
+    #calculating valid class probabilities in each example
+    output = exp_values / x_sum
+    #results are returned
+    return output
 
 def der_softmax_vec(x):
-    """
-    Softmax derivative returns the *diagonal* part only.
-    Full Jacobian is layer-dependent; usually combined with cross-entropy.
-    Here we return the element-wise derivative: s*(1-s).
-    """
+    #as in this implementation activation function derivatives are calculated from z (pre-activation results) and to get diagonal of jacobian results of softmax are needed
     s = softmax_vec(x)
-    return s * (1 - s)
+    #diagonal of jacobian is calculated (it is simplification of softmax derivative, but it works with cross entropy loss function, which is usually used with softmax)
+    output = s * (1 - s)
+    #results are returned
+    return output
