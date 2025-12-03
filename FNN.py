@@ -341,40 +341,41 @@ class FNN:
             neurons_list_list.append(neurons_list)
         #returning list with results
         return neurons_list_list
-    #
+    #this functions gets prediction of input by network (for regression network)
     def predictRegression(self,input):
-        #
+        #propagating input through network
         out = self.forward(input)
-        #
+        #getting activation values of forward pass
         activation = out[-1]
-        #
+        #getting activation values of output layer
         output = activation[-1]
-        #
+        #assigning results of output layer as predictions (as value was predicted)
         predict = output
-        #
+        #returning predictions
         return predict
+    #this functions gets prediction of input by network (for binary classification networks)
     def predictClassBinary(self,input):
-        #
+        #propagating input through network
         out = self.forward(input)
-        #
+        #getting activation values of forward pass
         activation = out[-1]
-        #
+        #getting activation values of output layer
         output = activation[-1]
-        #
+        #creating output variable for pre-allocation
         predict = np.zeros(output.shape)
-        #
+        #if probability of results is over 0.5, than it belongs to True
         predict[output >= 0.5] = 1
-        #
+        #returning predictions
         return predict
-    #
+    #this functions gets prediction of input by network (for multi-class classification networks)
     def predictClassMulti(self,input):
-        #
+        #propagating input through network
         out = self.forward(input)
-        #
+        #getting activation values of forward pass
         activation = out[-1]
-        #
+        #getting activation values of output layer
         output = activation[-1]
-        #
+        #class with highest probability becomes prediction. Class values is given based on index.
         predict = np.argmax(output, axis = 0)
-        #
+        #returning predictions
         return predict
