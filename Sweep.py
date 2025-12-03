@@ -8,9 +8,15 @@ from ActivFunctions import (
     sigmoid,
     tanh,
     softmax_vec,
+    identity,
+    leaky_relu,
 )
-from LossFunctions import SoftmaxCrossEntropy, SoftmaxCrossEntropyDerivative
-
+from LossFunctions import (
+    SoftmaxCrossEntropy,
+    SoftmaxCrossEntropyDerivative,
+    MeanSquaredError,
+    MeanSquaredErrorDerivative,
+)
 from gradient_descent import (
     train_minibatch_sgd,
     train_minibatch_sgd_momentum,
@@ -19,45 +25,52 @@ from gradient_descent import (
     train_minibatch_adam,
 )
 
-# DEFAULT CONFIG (can be overridden by a sweep)
+# DEFAULT CONFIG (can be overridden by a W&B sweep)
 DEFAULT_CONFIG = dict(
     train_path="Data/fashion-mnist_train.csv",
     test_path="Data/fashion-mnist_test.csv",
 
-    # architecture
-    num_hidden_layers=3,
-    hidden_width=256,          # used to build n_hidden_units = [hidden_width]*num_hidden_layers
-    activation_hidden="relu",  # "relu", "tanh", "sigmoid"
+    # architecture 
+    num_hidden_layers=3,        # number of hidden layers
+    n_hidden_units=256,         # neurons per hidden layer (same in each hidden layer)
+    activation_hidden="relu",   # "relu", "tanh", "sigmoid", "identity", "leaky_relu"
     activation_output="softmax_vec",
-    weights_init="HeNor",
+    weights_init="HeNor",       # "Zero", "RandomUni", "RandomNor", "XavUni", "XavNor", "HeUni", "HeNor"
 
-    # training
+    # training 
     epochs=15,
     learning_rate=5e-4,
     batch_size=128,
-    optimizer="adam",          # "sgd", "sgd_momentum", "nag", "rmsprop", "adam"
+    optimizer="adam",           # "sgd", "sgd_momentum", "nag", "rmsprop", "adam"
 
-    # optimizer-specific
-    momentum=0.9,              # sgd_momentum, nag
-    rmsprop_beta=0.9,          # rmsprop
-    beta1=0.9,                 # adam
-    beta2=0.999,               # adam
-    epsilon=1e-8,              # adam, rmsprop
+    # optimizer-specific 
+    momentum=0.9,               # sgd_momentum, nag
+    rmsprop_beta=0.9,           # rmsprop (beta)
+    beta1=0.9,                  # adam
+    beta2=0.999,                # adam
+    epsilon=1e-8,               # adam, rmsprop
 
-    # regularization
+    # regularization 
     l1_coeff=0.0,
     l2_coeff=0.0,
 
-    # data split
+    # loss as hyperparameter 
+    loss_name="cross_entropy",  # "cross_entropy" or "mse"
+
+    # data split 
     val_fraction=0.1,
+
+    # gradient clipping 
+    grad_clip=0.0,              # 0.0 = off, >0 switches on norm clipping
 )
 
-
-# Activation mapping (strings -> functions)
+# ACTIVATION MAPPING
 ACTIVATION_FUNCS = {
     "relu": relu,
     "sigmoid": sigmoid,
     "tanh": tanh,
+    "identity": identity,
+    "leaky_relu": leaky_relu,
 }
 
 OUTPUT_ACTIVATION_FUNCS = {
@@ -94,15 +107,16 @@ def one_hot(y, num_classes=10):
 
 
 # LOSS + L2
-def compute_loss_with_l2(network, X, Y, l2_coeff):
+
+def compute_loss_with_l2(network, X, Y, l2_coeff, loss_fn):
     """
-    Total loss = data loss (SoftmaxCrossEntropy) + L2 penalty (if l2_coeff > 0).
+    Total loss = data loss (MSE or CrossEntropy) + L2 penalty (if l2_coeff > 0).
     Bias weights (last column) are not regularized.
     """
     _, a_values = network.forward(X)
-    logits = a_values[-1]
+    outputs = a_values[-1]
 
-    data_loss = SoftmaxCrossEntropy(Y, logits)
+    data_loss = loss_fn(Y, outputs)
 
     if l2_coeff != 0.0:
         l2 = 0.0
@@ -114,12 +128,15 @@ def compute_loss_with_l2(network, X, Y, l2_coeff):
     return data_loss
 
 
-# OPTIMIZER DISPATCH
-def train_one_epoch(net, X, Y, cfg):
+# OPTIMIZER DISPATCH (ONE EPOCH)
+
+def train_one_epoch(net, X, Y, cfg, loss_derivative):
     """
     Train the network for exactly ONE epoch using the optimizer specified in cfg.
+    All common hyperparameters are taken from cfg, including grad_clip.
     """
     opt = cfg.optimizer.lower()
+    gc = cfg.grad_clip
 
     if opt == "sgd":
         return train_minibatch_sgd(
@@ -129,9 +146,10 @@ def train_one_epoch(net, X, Y, cfg):
             epochs=1,
             learning_rate=cfg.learning_rate,
             batch_size=cfg.batch_size,
-            loss_derivative=SoftmaxCrossEntropyDerivative,
+            loss_derivative=loss_derivative,
             l1_coeff=cfg.l1_coeff,
             l2_coeff=cfg.l2_coeff,
+            grad_clip=gc,
         )
 
     if opt == "sgd_momentum":
@@ -142,10 +160,11 @@ def train_one_epoch(net, X, Y, cfg):
             epochs=1,
             learning_rate=cfg.learning_rate,
             batch_size=cfg.batch_size,
-            loss_derivative=SoftmaxCrossEntropyDerivative,
+            loss_derivative=loss_derivative,
             momentum=cfg.momentum,
             l1_coeff=cfg.l1_coeff,
             l2_coeff=cfg.l2_coeff,
+            grad_clip=gc,
         )
 
     if opt == "nag":
@@ -156,10 +175,11 @@ def train_one_epoch(net, X, Y, cfg):
             epochs=1,
             learning_rate=cfg.learning_rate,
             batch_size=cfg.batch_size,
-            loss_derivative=SoftmaxCrossEntropyDerivative,
+            loss_derivative=loss_derivative,
             momentum=cfg.momentum,
             l1_coeff=cfg.l1_coeff,
             l2_coeff=cfg.l2_coeff,
+            grad_clip=gc,
         )
 
     if opt == "rmsprop":
@@ -170,10 +190,12 @@ def train_one_epoch(net, X, Y, cfg):
             epochs=1,
             learning_rate=cfg.learning_rate,
             batch_size=cfg.batch_size,
-            loss_derivative=SoftmaxCrossEntropyDerivative,
+            loss_derivative=loss_derivative,
             beta=cfg.rmsprop_beta,
+            epsilon=cfg.epsilon,
             l1_coeff=cfg.l1_coeff,
             l2_coeff=cfg.l2_coeff,
+            grad_clip=gc,
         )
 
     if opt == "adam":
@@ -184,16 +206,19 @@ def train_one_epoch(net, X, Y, cfg):
             epochs=1,
             learning_rate=cfg.learning_rate,
             batch_size=cfg.batch_size,
-            loss_derivative=SoftmaxCrossEntropyDerivative,
+            loss_derivative=loss_derivative,
             beta1=cfg.beta1,
             beta2=cfg.beta2,
             epsilon=cfg.epsilon,
             l1_coeff=cfg.l1_coeff,
             l2_coeff=cfg.l2_coeff,
+            grad_clip=gc,
         )
 
     raise ValueError(f"Unknown optimizer: {cfg.optimizer}")
 
+
+# METRICS
 
 def accuracy(network, X, Y):
     _, a_values = network.forward(X)
@@ -203,6 +228,7 @@ def accuracy(network, X, Y):
 
 
 # MAIN TRAIN FUNCTION (USED BY SWEEPS)
+
 def main():
     """
     This function is executed once per run.
@@ -212,15 +238,24 @@ def main():
     run = wandb.init(config=DEFAULT_CONFIG, project="ffnn-from-scratch")
     cfg = wandb.config  # this holds defaults + sweep overrides
 
-    # 1. Build derived hyperparameters
-    # Build n_hidden_units from num_hidden_layers + hidden_width
-    n_hidden_units = [cfg.hidden_width] * cfg.num_hidden_layers
+    # --- choose loss function + derivative based on cfg.loss_name ---
+    if cfg.loss_name == "cross_entropy":
+        loss_fn = SoftmaxCrossEntropy
+        loss_deriv = SoftmaxCrossEntropyDerivative
+    elif cfg.loss_name == "mse":
+        loss_fn = MeanSquaredError
+        loss_deriv = MeanSquaredErrorDerivative
+    else:
+        raise ValueError(f"Unknown loss_name: {cfg.loss_name}")
 
-    # Map string activations to functions
+    # --- build hidden layer sizes from num_hidden_layers + n_hidden_units ---
+    n_hidden_units = [cfg.n_hidden_units] * cfg.num_hidden_layers
+
+    # --- map string activations to functions ---
     act_hidden_fn = ACTIVATION_FUNCS[cfg.activation_hidden]
     act_output_fn = OUTPUT_ACTIVATION_FUNCS[cfg.activation_output]
 
-    # 2. Load data + split train/val
+    # --- load data + split train/val ---
     (X_train_full, y_train_full), (X_test, y_test) = load_fashion_mnist(
         cfg.train_path, cfg.test_path
     )
@@ -239,7 +274,7 @@ def main():
     X_val = X_train_full[:, val_idx]
     Y_val = Y_train_full[:, val_idx]
 
-    # 3. Build FNN
+    # --- build FNN ---
     input_dim = X_train.shape[0]
     num_classes = 10
 
@@ -252,14 +287,14 @@ def main():
         method_ini=cfg.weights_init,
     )
 
-    # 4. Training loop (log train/val metrics each epoch)
+    # --- training loop (log train/val metrics each epoch) ---
     for epoch in range(cfg.epochs):
-        net = train_one_epoch(net, X_train, Y_train, cfg)
+        net = train_one_epoch(net, X_train, Y_train, cfg, loss_deriv)
 
-        train_loss = compute_loss_with_l2(net, X_train, Y_train, cfg.l2_coeff)
+        train_loss = compute_loss_with_l2(net, X_train, Y_train, cfg.l2_coeff, loss_fn)
         train_acc = accuracy(net, X_train, Y_train)
 
-        val_loss = compute_loss_with_l2(net, X_val, Y_val, cfg.l2_coeff)
+        val_loss = compute_loss_with_l2(net, X_val, Y_val, cfg.l2_coeff, loss_fn)
         val_acc = accuracy(net, X_val, Y_val)
 
         print(
@@ -271,15 +306,19 @@ def main():
         wandb.log(
             {
                 "epoch": epoch + 1,
+                "learning_rate": cfg.learning_rate,
                 "train_loss": train_loss,
                 "train_acc": train_acc,
                 "val_loss": val_loss,
                 "val_acc": val_acc,
+                "grad_clip": cfg.grad_clip,
+                "l1_coeff": cfg.l1_coeff,
+                "l2_coeff": cfg.l2_coeff,
             }
         )
 
-    # 5. Final test metrics
-    test_loss = compute_loss_with_l2(net, X_test, Y_test, cfg.l2_coeff)
+    # --- final test metrics ---
+    test_loss = compute_loss_with_l2(net, X_test, Y_test, cfg.l2_coeff, loss_fn)
     test_acc = accuracy(net, X_test, Y_test)
 
     wandb.log(
@@ -291,7 +330,7 @@ def main():
 
     print(
         f"[RUN DONE] opt={cfg.optimizer}, act={cfg.activation_hidden}, "
-        f"layers={cfg.num_hidden_layers}, width={cfg.hidden_width} -> "
+        f"layers={cfg.num_hidden_layers}, width={cfg.n_hidden_units} -> "
         f"test_acc={test_acc:.4f}"
     )
 
