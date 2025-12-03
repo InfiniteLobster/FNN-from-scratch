@@ -196,32 +196,33 @@ def testInputFormat(base_list,network):
 #this function one hot encodes classes in given file
 def one_hot_encode(labels, num_classes):
     #one hot encoding work differently when classes are integers or strings(descriptive)
-    if((labels.dtype == object)):
+    if((labels.dtype == object)):#strings in np would be of dtype object
         #getting unique labels for encoding 
         unique = np.unique(labels)
         #first each label needs to be mapped to number(integer)
         maping = {des:val for val,des in enumerate(unique)}
-        #
+        #getting shape of labels for further processing (it is used more than once, so it is bettere to assign it to variable)
         shapeLabels = labels.shape
+        #declaring output variable for pre-allocation
         one_hot = np.zeros((num_classes,shapeLabels[1]))
+        #loop iterating through each observation
         for iExample in range(shapeLabels[1]):
-            #
+            #getting value(string) of current example
             value = labels[0,iExample]
-            #
+            #getting value(of label) to know to which row (each row is different class) current example should be assigned
             index = maping[value]
-            #
+            #assignment of class
             one_hot[index,iExample] = 1
-    else:
+    else:#if not object, then some kind of number, which can be integer
+        #converting datatype of given classes to integers
         labels_int = labels.astype(int)
-
+        #one hot encoding data
         one_hot = np.eye(num_classes)[labels_int].T #transpose so that shape is (num_classes, n_samples)
     #returning results
     return one_hot
-#
+#this function decodes one hot encoded input (with shape (num_classes, n_samples))
 def one_hot_decode(one_hot):
-    #
-    decoded = np.argmax(one_hot, axis = 0)
-    #
-
-
+    #input is decoded
+    decoded = np.argmax(one_hot, axis = 0)#gets index of maximal value of rows in column. As highest value in rows corresponds to class with highest probability its index would be taken, which would give this specific class unique value for it
+    #results are returned
     return decoded
