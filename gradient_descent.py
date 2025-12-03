@@ -1,6 +1,7 @@
 import numpy as np
 from LossFunctions import SoftmaxCrossEntropyDerivative
 import SuppFunctions  # for clip_gradient
+from ErrorClasses import *
 
 
 # Helper: make sure inputs/targets have correct shape
@@ -11,6 +12,8 @@ def _prepare_data(network, inputs, targets):
     # If targets are (n_samples, n_outputs), fix them
     if targets.shape[0] != network.weights_list[-1].shape[0]:
         targets = targets.T
+        if(targets.shape[0] != network.weights_list[-1].shape[0]):
+            raise NotSupportedInputGiven("Network training","Targets does not match network outputs")
 
     n_samples = inputs.shape[1]
     return inputs, targets, n_samples
