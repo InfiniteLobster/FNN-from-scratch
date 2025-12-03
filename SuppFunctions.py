@@ -215,6 +215,13 @@ def one_hot_encode(labels, num_classes):
         labels_int = labels.astype(int)
 
         one_hot = np.eye(num_classes)[labels_int].T #transpose so that shape is (num_classes, n_samples)
-    #
+    #returning results
     return one_hot
-#this function calculates 
+#
+def one_hot_decode(one_hot):
+    #
+    decoded = np.argmax(one_hot, axis = 0)
+    #
+
+
+    return decoded

@@ -341,3 +341,40 @@ class FNN:
             neurons_list_list.append(neurons_list)
         #returning list with results
         return neurons_list_list
+    #
+    def predictRegression(self,input):
+        #
+        out = self.forward(input)
+        #
+        activation = out[-1]
+        #
+        output = activation[-1]
+        #
+        predict = output
+        #
+        return predict
+    def predictClassBinary(self,input):
+        #
+        out = self.forward(input)
+        #
+        activation = out[-1]
+        #
+        output = activation[-1]
+        #
+        predict = np.zeros(output.shape)
+        #
+        predict[output >= 0.5] = 1
+        #
+        return predict
+    #
+    def predictClassMulti(self,input):
+        #
+        out = self.forward(input)
+        #
+        activation = out[-1]
+        #
+        output = activation[-1]
+        #
+        predict = np.argmax(output, axis = 0)
+        #
+        return predict
