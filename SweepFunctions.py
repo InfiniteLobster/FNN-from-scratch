@@ -46,6 +46,37 @@ def getDataset(name):
     dataInput_test =  (x_test_flattened.T/255.0)
     #returning dataset to train
     return dataTarget_train,dataTarget_test,dataInput_train,dataInput_test
+#
+def getActivFunct(name): 
+    #
+    match name:
+        case "identity":
+            activ_function = identity
+        case "sigmoid":
+            activ_function = sigmoid
+        case "tanh":
+            activ_function = tanh
+        case "relu":
+            activ_function = relu
+        case "leaky_relu":
+            activ_function = leaky_relu
+        case "softmax":
+            activ_function = softmax
+    #
+    return activ_function
+#
+def getLossFunct(name): 
+    #
+    match name:
+        case "MeanSquaredError":
+            loss_function = MeanSquaredError
+        case "CrossEntropy":
+            loss_function = CrossEntropy
+        case "SoftmaxCrossEntropy":
+            loss_function = CrossEntropy
+    #
+    return loss_function
+
 
 
 
@@ -68,7 +99,7 @@ def train_one_epoch(net, dataInput_train, dataTarget_train, cfg):
     loss_derivative = getLossDer(cfg_loss_function)
     #selecting regularization method and regularization coefficient value
     match cfg_l_method:
-        case "None":
+        case "none":
             l1_coeff_in = 0.0
             l2_coeff_in = 0.0
         case "l1":
@@ -98,27 +129,61 @@ def main(args=None):
     project = args.project if args else None
     #
     with wandb.init(project=project) as run:
-        # 
+        #getting configuration
         cfg = run.config
-        #
+        #getting run parameters from configuration
         cfg_dataset = cfg.dataset
         cfg_epochs = cfg.epochs
-        cfg_hidden_layers = cfg.hidden_layers
+        cfg_num_hidden_layers = cfg.num_hidden_layers
+        cfg_num_hidden_units = cfg.num_hidden_units
+        cfg_activation_hidden = cfg.activation_hidden
+        cfg_activation_output = cfg.activation_output
+        cfg_loss_function = cfg.loss_function
+        cfg_weights_init = cfg.weights_init
         #
-        dataTarget_train,dataTarget_test,dataInput_train,dataInput_test = getDataset(name)
-
-
-
+        dataTarget_train,dataTarget_test,dataInput_train,dataInput_test = getDataset(cfg_dataset)
+        #
+        num_input = dataInput_train.shape[0]
+        num_output = dataTarget_train.shape[0]
+        #
+        hidden_layers = [cfg_num_hidden_units] * cfg_num_hidden_layers
+        #
+        arch_net = hidden_layers
+        arch_net.insert(0,num_input)
+        arch_net.append(num_output)
+        #
+        activation_hidden = getActivFunct(cfg_activation_hidden)
+        activation_output = getActivFunct(cfg_activation_output)
+        #declaring network
+        net = FNN(arch_net,
+                            [activation_hidden,activation_output],
+                            method_ini = cfg_weights_init
+                            )
+        #
+        loss_function = getLossFunct(cfg_loss_function)
+        #decoding test set(needed for network accuracy)
+        dataTarget_test_decode = one_hot_decode(dataTarget_test)
+        dataTarget_train_decode = one_hot_decode(dataTarget_train)
         # Execute the training loop and log the performance values to W&B
-        for epoch in np.arange(1, cfg_epochs):
-            train_acc, train_loss = train_one_epoch(epoch, lr, batch_size)
-            val_acc, val_loss = evaluate_one_epoch(epoch)
+        for epoch in np.arange(1, (cfg_epochs+1)):
+            #
+            net = train_one_epoch(net, dataInput_train, dataTarget_train, cfg)
+            #
+            prediction_train = net.predictClassMulti(dataInput_train)
+            prediction_val = net.predictClassMulti(dataInput_test)
+            #
+            loss_train = loss_function(dataTarget_train,prediction_train)
+            accuracy_train = getAccuracy(dataTarget_train_decode,prediction_train)
+            #
+            loss_val = loss_function(dataTarget_test,prediction_val)
+            accuracy_val = getAccuracy(dataTarget_test_decode,prediction_val)
+            #
             run.log(
                 {
                     "epoch": epoch,
-                    "train_acc": train_acc,
-                    "train_loss": train_loss,
-                    "val_acc": val_acc, # Metric optimized
-                    "val_loss": val_loss,
+                    "train_acc": accuracy_train,
+                    "train_loss": loss_train,
+                    "val_acc": accuracy_val, 
+                    "val_loss": loss_val,
                 }
             )

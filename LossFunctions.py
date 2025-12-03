@@ -29,7 +29,7 @@ def CrossEntropy(targets, predictions):
     #
     #prob = predictions[np.arrange(len(targets)),targets]
     #
-    loss = -np.sum(targets * np.log(predictions))
+    loss = -np.sum(targets * np.log(predictions + 1e-15))#1e-15 is added for numerical stability ->predictions can become zero, which lead to divide by zero error
     #
     return loss
 def CrossEntropyDerivative(targets, predictions):
