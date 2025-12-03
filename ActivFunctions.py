@@ -44,17 +44,35 @@ def der_softmax(x):
     return 0
 
 #Softmax (vector/array input)
-def softmax_vec(x):#
-    #
-    x_shifted = x - np.max(x, axis=0, keepdims=True)#keepdims=True keeps shape for broadcasting(which should be impossible due to failsafes in previous steps)
+def softmax_vec(x):
+    #getting maximal value in each example (column) to ensure numerical stability in next step
+    x_max_val = np.max(x, axis=0, keepdims=True)#keepdims=True keeps shape for broadcasting(which should be impossible due to failsafes in previous steps)
+    #maximal (largest) value is substracted to avoid numerical overflow
+    x_shifted = x - x_max_val
+    #values are taken into exponential to get probabilities (yet to be valid probabilities)
     exp_values = np.exp(x_shifted)
-    return exp_values / np.sum(exp_values, axis=0, keepdims=True)
-
+    #getting sum of all values in each example so valid probabilities (in range of 0-1) can be obtained
+    x_sum = np.sum(exp_values, axis=0, keepdims=True)
+    #calculating valid class probabilities in each example
+    output = exp_values / x_sum
+    #results are returned
+    return output
 def der_softmax_vec(x):
-    """
-    Softmax derivative returns the *diagonal* part only.
-    Full Jacobian is layer-dependent; usually combined with cross-entropy.
-    Here we return the element-wise derivative: s*(1-s).
-    """
-    s = softmax_vec(x)
-    return s * (1 - s)
+    #as in this implementation activation function derivatives are calculated from z (pre-activation results) and in this case they are needed for derivative calculation
+    activation_results = softmax_vec(x)
+    #getting shape of activation results is needed for 
+    activation_results_shape = activation_results.shape
+    num_class = activation_results_shape[0]
+    batch_size = activation_results_shape[1]
+    #output variable is declared for pre-allocation. In case of softmax function, the derivative is jacobian matrix
+    jacobian = np.zeros((batch_size,num_class,num_class))
+    #iterating through all examples as each needs its own jacobian matrix
+    for iExample in range(batch_size):
+        #getting activation results for current example -> jacobian is calculate y example
+        activation_result = activation_results[:,iExample].reshape(-1,1)
+        #calculating jacobian matrix for current example
+        jac_mat = np.diagflat(activation_result) - activation_result @ activation_result.T
+        #assigning results to output variable
+        jacobian[iExample] = jac_mat
+    #returning output
+    return jacobian

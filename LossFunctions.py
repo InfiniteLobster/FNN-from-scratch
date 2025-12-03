@@ -11,35 +11,38 @@ def MeanSquaredError(targets, predictions):
 
 def MeanSquaredErrorDerivative(targets, predictions):
     return (predictions - targets)
-
-
 # ================================================
 # Binary Cross-Entropy (for sigmoid output)
 # ================================================
 def BinaryCrossEntropy(targets, predictions, eps=1e-12):
-    """
-    targets: (1, batch)
-    predictions: (1, batch)
-    """
+    #
     predictions = np.clip(predictions, eps, 1 - eps)
+    #
     return -np.mean(targets * np.log(predictions) +
                     (1 - targets) * np.log(1 - predictions))
 
 def BinaryCrossEntropyDerivative(targets, predictions, eps=1e-12):
     predictions = np.clip(predictions, eps, 1 - eps)
     return (predictions - targets) / (predictions * (1 - predictions))
-
-
+#Cross-Entropy
+def CrossEntropy(targets, predictions):
+    #
+    #prob = predictions[np.arrange(len(targets)),targets]
+    #
+    loss = -np.sum(targets * np.log(predictions))
+    #
+    return loss
+def CrossEntropyDerivative(targets, predictions):
+    #
+    #grad = np.zeros_like(predictions)
+    #grad[targets,np.arrange(predictions.shape[1])] = -1 / predictions[targets,np.arrange(predictions.shape[1])]
+    #
+    output = -targets / (predictions +1e-15)
+    #
+    return output
 # ================================================
 # Softmax + Cross-Entropy (for multi-class)
 # ================================================
-def SoftmaxCrossEntropy(target_one_hot, softmax_vals):#in this implementation softmax is calculated in layer, but cross entropy should only be used with softmax in output layer
-    # Cross-entropy loss calculation
-    loss_sum = -np.sum(target_one_hot * np.log(softmax_vals + 1e-12), axis = 0)# 1e-12 is added for numerical stability
-    loss_mean = np.mean(loss_sum)
-    #returning loss
-    return loss_mean
-
-
+#this is only used in backpropagation and for this purpose only derivative is needed
 def SoftmaxCrossEntropyDerivative(target_one_hot, softmax_vals):
     return (softmax_vals - target_one_hot)

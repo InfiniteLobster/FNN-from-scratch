@@ -115,11 +115,21 @@ def getDelta(der_prev,z,activ_functions_list):
             #applying it for input
             a_der = activ_function_der(z)
             #calculating gradient of loss
-            delta = der_prev * a_der
+            if(type(a_der) == np.ndarray):#some special case occurs in np arrays and for evaluation of it .ndim property is needed, but if derivative is value then such property does not exist. Thankfully situation does not occur (at least was not caught) when der is value so this can be used to avoid errors when der is value
+                if(a_der.ndim == 2):#this is normal situation
+                    delta = der_prev * a_der
+                elif(a_der.ndim == 3):# in case of softmax, the derivative is 2D Jacobiam matrix, which results in following shape (num_examples,num_class,num_class) and loss derivative is in need of special method of calculation
+                    #getting shape of output gradient of loss
+                    delta = np.zeros((der_prev.shape[0],a_der.shape[0]))
+                    #iterating through examples
+                    for iExample in range(a_der.shape[2]):
+                        delta[:,iExample] = der_prev[:,iExample] @ a_der[iExample]
+            else:#if derivatives are values, then calculation is simple
+                delta = der_prev * a_der
     else:#if neurons have different activation function in layer, then gradient loss proceeds neuron by neuron proceeds neuron by neuron
         #caling function that would perform gradient of loss calculation neuron by neuron
-
         delta = gradLoss(der_prev,z,activ_functions_list) 
+    #returning the output
     return delta
 #this function caluclates gradient of loss neuron by neuron (needed for case when there are different activation functions for neurons in the same layer)
 def gradLoss(derPrev,z_output,activ_functions_list):

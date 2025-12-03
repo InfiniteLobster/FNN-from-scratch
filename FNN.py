@@ -257,24 +257,20 @@ class FNN:
         activ_functions_list = activ_functions_list_list[-1]
         #getting derivative of loss for output layer
         if(a_output.shape == targets.shape):
-            dL_dy = loss_derivative(targets,a_output)#it should be always possible to calculate loss by vectors
+            #softmax + cross entropy might be calculated in special way (it should improve stability and effectivity of training). If such method is choosen ("SoftmaxCrossEntropyDerivative"), then loss proceeds in special way
+            if(((activ_functions_list[0].__code__.co_code == softmax.__code__.co_code)) &  (loss_derivative.__name__ == "SoftmaxCrossEntropyDerivative")):
+                delta = loss_derivative(targets,a_output)
+                #optimizers divide by batch size once again, so here we rescale to avoid effective 1/B^2 
+                batch_size = a_output.shape[1]
+                delta = delta * batch_size
+            else:#in any other case loss propagation proceeds normally
+                #calculation of loss derivative
+                dL_dy = loss_derivative(targets,a_output)#it should be always possible to calculate loss by vectors
+                #calculation of gradient of the loss for output layer
+                delta = getDelta(dL_dy,z_output,activ_functions_list) 
         else:#if shapes does not match, than given data is not correct, backpropagation can not proceed and proper error should be thrown.
             raise NotSupportedInputGiven("backpropagation","Network output and ground truth does not match")
-                #for SoftmaxCrossEntropyDerivative the derivative already includes division by batch size;
-        #optimizers divide by batch size once again, so here we rescale to avoid effective 1/B^2
-        if loss_derivative.__name__ == "SoftmaxCrossEntropyDerivative":
-            batch_size = a_output.shape[1]  # number of samples in batch
-            dL_dy = dL_dy * batch_size
-                    #special case: softmax (or softmax_vec) + cross-entropy -> dL_dy is already derivative w.r.t. logits,
-        #so we MUST NOT multiply by activation derivative again
-        first_act = activ_functions_list[0]
-        if ((first_act.__code__.co_code == softmax.__code__.co_code) or
-            (first_act.__code__.co_code == softmax_vec.__code__.co_code)) and \
-                (loss_derivative.__name__ == "SoftmaxCrossEntropyDerivative"):
-            delta = dL_dy
-        else:
-            delta = getDelta(dL_dy,z_output,activ_functions_list) 
-        #propagating loss through network
+        #propagating loss through network (hidden layers)
         for layer_index in reversed(range(num_layers)):
             #getting input to current layer
             a_in = a_values[layer_index]#due to starting in reverse from range the index of current layer is shifted as +1 (it would be normal if input to network was not added as first elements of z and a), so to reach previous layer 'layer_index' is used, not -1 as previous +1 is accounted for and they cancel each other
