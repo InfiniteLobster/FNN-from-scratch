@@ -57,11 +57,22 @@ def softmax_vec(x):
     output = exp_values / x_sum
     #results are returned
     return output
-
 def der_softmax_vec(x):
-    #as in this implementation activation function derivatives are calculated from z (pre-activation results) and to get diagonal of jacobian results of softmax are needed
-    s = softmax_vec(x)
-    #diagonal of jacobian is calculated (it is simplification of softmax derivative, but it works with cross entropy loss function, which is usually used with softmax)
-    output = s * (1 - s)
-    #results are returned
-    return output
+    #as in this implementation activation function derivatives are calculated from z (pre-activation results) and in this case they are needed for derivative calculation
+    activation_results = softmax_vec(x)
+    #getting shape of activation results is needed for 
+    activation_results_shape = activation_results.shape
+    num_class = activation_results_shape[0]
+    batch_size = activation_results_shape[1]
+    #output variable is declared for pre-allocation. In case of softmax function, the derivative is jacobian matrix
+    jacobian = np.zeros((batch_size,num_class,num_class))
+    #iterating through all examples as each needs its own jacobian matrix
+    for iExample in range(batch_size):
+        #getting activation results for current example -> jacobian is calculate y example
+        activation_result = activation_results[:,iExample].reshape(-1,1)
+        #calculating jacobian matrix for current example
+        jac_mat = np.diagflat(activation_result) - activation_result @ activation_result.T
+        #assigning results to output variable
+        jacobian[iExample] = jac_mat
+    #returning output
+    return jacobian
