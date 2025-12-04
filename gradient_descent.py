@@ -88,7 +88,7 @@ def train_minibatch_sgd(network,
                 # Gradient descent step
                 network.weights_list[i] = W - learning_rate * g
 
-    return network
+    return network,grad_W
 
 
 # 1b. MINI-BATCH SGD WITH MOMENTUM
@@ -155,7 +155,7 @@ def train_minibatch_sgd_momentum(network,
                 # Weight update: w = w + v
                 network.weights_list[i] = W + v[i]
 
-    return network
+    return network,grad_W
 
 
 # 2. MINI-BATCH RMSPROP
@@ -230,7 +230,7 @@ def train_minibatch_rmsprop(network,
                 # Gradient descent step
                 network.weights_list[i] = W - update
 
-    return network
+    return network,grad_W
 
 
 # 3. MINI-BATCH NESTEROV ACCELERATED GRADIENT (NAG)
@@ -308,7 +308,7 @@ def train_minibatch_nag(network,
                 # => w_{t+1} = w_look + (v_new - momentum * v_prev)
                 network.weights_list[i] = W + (v[i] - momentum * v_prev)
 
-    return network
+    return network,grad_W
 
 
 # 4. MINI-BATCH ADAM OPTIMIZER
@@ -395,4 +395,4 @@ def train_minibatch_adam(network,
                 # 5. Apply update (gradient descent direction)
                 network.weights_list[i] = W - update
 
-    return network
+    return network,grad_W
