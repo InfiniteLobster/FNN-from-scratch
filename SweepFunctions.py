@@ -183,10 +183,10 @@ def main(args=None):
             #logging parameters(weights+biases) histograms
             for iLayer, weights_matrix in enumerate(net.weights_list):
                 #logging parameters of current layer
-                run.log({f"parameters/layer{iLayer}": wandb.Histogram(weights_matrix)})
+                run.log({f"parameters/layer{iLayer}": wandb.Histogram(weights_matrix)}, step = epoch)
             #logging gradient norms
             for iLayer, gradient in enumerate(grads):
                 #getting gradient norm of current layer
                 gradient_norm = np.linalg.norm(gradient)
                 #logging gradient norm of current layer
-                run.log({f"grad_norm/layer{iLayer}": wandb.Histogram(gradient_norm)})
+                run.log({f"grad_norm/layer{iLayer}": wandb.Histogram(gradient_norm)}, step = epoch)
