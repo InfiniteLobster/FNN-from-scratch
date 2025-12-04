@@ -15,6 +15,31 @@ def getConfMatCompBin(ground_truth,predictions):
     confComp = [true_positive,true_negative,false_positive,false_negative]
     #returning results
     return confComp
+#this function plots confusion matrix for binary classification
+def plotConfMatBin(confComp, class_names=None, title="Confusion Matrix"):
+    #changing confusion matrix components format into array, so plot can be colored to indicate intensity
+    confComp_array = np.array([[confComp[0],confComp[3]],[confComp[2],confComp[1]]])
+    #creating figure to 'hold' plot
+    plt.figure(figsize=(7, 6))
+    #adding colors based on intensity
+    plt.imshow(confComp_array, interpolation="nearest")
+    #creating 'ticks' in plot for each case in confusion matrix, i.e. true_positive, true_negative, false_positive, false_negative
+    tick_marks = np.arange(2)
+    plt.xticks(tick_marks, [class_names[1],class_names[0]])#predicted labels
+    plt.yticks(tick_marks, [class_names[1],class_names[0]])#true labels
+    #setting values at proper places in plot
+    plt.text(0,0,str(confComp[0]),fontsize=48,ha="center", va="center")#true_positive
+    plt.text(0,1,str(confComp[2]),fontsize=48,ha="center", va="center")#false_positive
+    plt.text(1,0,str(confComp[3]),fontsize=48,ha="center", va="center")#false_negative
+    plt.text(1,1,str(confComp[1]),fontsize=48,ha="center", va="center")#true_negative
+    #adding descriptive features
+    plt.title(title)
+    plt.ylabel("True label")
+    plt.xlabel("Predicted label")
+    plt.tight_layout()
+    plt.colorbar()
+    #showing the results of plotting (returning confusion matrix)
+    plt.show()
 #this function calculates accuracy of model results (based on confusion matrix results) for binary classification
 def getAccuracyBin(true_positive,true_negative,false_positive,false_negative):
     #calculating accuracy (accuracy is ratio of true results out of all results)
@@ -52,39 +77,49 @@ def getAccuracy(ground_truth,predictions):
     accuracy = accurate/total
     #returning results
     return accuracy
-#
-def getConfMatCompMulti(ground_truth,predictions, num_classes=10):
-    #
-    cm = np.zeros((num_classes, num_classes), dtype=int)
-    #
-    for t, p in zip(ground_truth, predictions):
-        cm[t, p] += 1
-    return cm
-#
-def plot_confusion_matrix(cm, class_names=None, title="Confusion Matrix"):
-    num_classes = cm.shape[0]
+#this function calculates confusion matrix elements for multi-class classification 
+def getConfMatCompMulti(ground_truth,predictions):
+    #getting number of classes to know dimesnions of confusion matrix to create
+    num_classes = predictions.shape[0]
+    #creating confusion matrix variable for pre-allocation
+    confusion_matrix = np.zeros((num_classes, num_classes), dtype=int)
+    #iterating through results to add numbers at proper places (to compare prediction and true value)
+    for true_axis, predi_axis in zip(ground_truth, predictions):
+        #adding value at place corresponding to situation (on y axis(rows) true labels are located, on x axis(columns) predicted labels are located)
+        confusion_matrix[true_axis, predi_axis] += 1
+    #returning confusion matrix (np array)
+    return confusion_matrix
+#this function plots confusion matrix for multi-class classification
+def plot_confusion_matrix(confusion_matrix, class_names=None, title="Confusion Matrix"):
+    #getting shape of confusion matrix(based on numbers of classes) to know how plot should be created
+    num_classes = confusion_matrix.shape[0]
+    #in case when class names are not given, number labels are used (based on index)
     if class_names is None:
         class_names = [str(i) for i in range(num_classes)]
-
+    #creating figure to 'hold' plot
     plt.figure(figsize=(7, 6))
-    plt.imshow(cm, interpolation="nearest")
-    plt.title(title)
-    plt.colorbar()
-
+    #adding colors based on intensity
+    plt.imshow(confusion_matrix, interpolation="nearest")
+    #creating 'ticks' in plot for each case in confusion matrix
     tick_marks = np.arange(num_classes)
     plt.xticks(tick_marks, class_names, rotation=45, ha="right")
     plt.yticks(tick_marks, class_names)
-
-    thresh = cm.max() / 2.0
-    for i in range(num_classes):
-        for j in range(num_classes):
+    #getting theshold for visualization purposes
+    thresh = confusion_matrix.max() / 2.0
+    #adding values of confusion matrix to plots by iterating through them
+    for iTrueAx in range(num_classes):
+        for jPrediAx in range(num_classes):
             plt.text(
-                j, i, str(cm[i, j]),
-                ha="center", va="center",
-                color="white" if cm[i, j] > thresh else "black"
+                jPrediAx, iTrueAx, #seting coordinates on the plot
+                str(confusion_matrix[iTrueAx, jPrediAx]),#giving value of the tick
+                ha="center", va="center",#centering the value
+                color="white" if confusion_matrix[iTrueAx, jPrediAx] > thresh else "black"# due to coloring of plot to show intensity, in some cases text may by invisible. By changing its color depneding on threshold improve visibility of values
             )
-
+    #adding descriptive features
+    plt.title(title)
     plt.ylabel("True label")
     plt.xlabel("Predicted label")
     plt.tight_layout()
+    plt.colorbar()
+    #showing the results of plotting (returning confusion matrix)
     plt.show()
