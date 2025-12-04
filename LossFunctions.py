@@ -16,7 +16,6 @@ def MeanSquaredError(targets, predictions):
     output = mean
     #retunring results
     return output
-
 def MeanSquaredErrorDerivative(targets, predictions):
     #getting number of examples for proper division
     num_examples = predictions.shape[1]
@@ -45,7 +44,6 @@ def BinaryCrossEntropy(targets, predictions, eps=1e-12):
     output = -avg            
     #returning results
     return output
-
 def BinaryCrossEntropyDerivative(targets, predictions, eps=1e-12):
     #predictions are clipped for numerical stability
     predictions = np.clip(predictions, eps, 1 - eps) 
@@ -58,23 +56,21 @@ def BinaryCrossEntropyDerivative(targets, predictions, eps=1e-12):
     return output
 #Cross-Entropy
 def CrossEntropy(targets, predictions):
-    #
-    #prob = predictions[np.arrange(len(targets)),targets]
-    #
+    #calculating loss
     loss = -np.sum(targets * np.log(predictions + 1e-15))#1e-15 is added for numerical stability ->predictions can become zero, which lead to divide by zero error
-    #
+    #returning results
     return loss
 def CrossEntropyDerivative(targets, predictions):
-    #
-    #grad = np.zeros_like(predictions)
-    #grad[targets,np.arrange(predictions.shape[1])] = -1 / predictions[targets,np.arrange(predictions.shape[1])]
-    #
-    output = -targets / (predictions +1e-15)
-    #
+    #calculating derivative of loss
+    output = -targets / (predictions +1e-15)#1e-15 is added for numerical stability ->predictions can become zero, which lead to divide by zero error
+    #returning results
     return output
 # ================================================
 # Softmax + Cross-Entropy (for multi-class)
 # ================================================
 #this is only used in backpropagation and for this purpose only derivative is needed
 def SoftmaxCrossEntropyDerivative(target_one_hot, softmax_vals):
-    return (softmax_vals - target_one_hot)
+    #calculating derivative of loss (in this case it is derivative with regards to logits)
+    output = (softmax_vals - target_one_hot)
+    #returning results
+    return output
