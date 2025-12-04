@@ -123,7 +123,7 @@ def getDelta(der_prev,z,activ_functions_list):
                     #getting shape of output gradient of loss
                     delta = np.zeros((der_prev.shape[0],a_der.shape[0]))
                     #iterating through examples
-                    for iExample in range(a_der.shape[2]):
+                    for iExample in range(a_der.shape[0]):
                         delta[:,iExample] = der_prev[:,iExample] @ a_der[iExample]
             else:#if derivatives are values, then calculation is simple
                 delta = der_prev * a_der
