@@ -10,7 +10,6 @@ def der_identity(x):
 
 #Sigmoid
 def sigmoid(x):
-    # numerically stable
     return 1.0 / (1.0 + np.exp(-x))
 def der_sigmoid(x):
     s = sigmoid(x)

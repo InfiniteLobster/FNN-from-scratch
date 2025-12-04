@@ -49,13 +49,19 @@ def getAccuracyBin(true_positive,true_negative,false_positive,false_negative):
 #this function calculates precision of model results (based on confusion matrix results) for binary classification
 def getPrecisionBin(true_positive,false_positive):
     #calculating precision (precision is ratio of true positive predictions out of all positive predicitions)
-    precision = (true_positive) / (true_positive + false_positive) 
+    if((true_positive > 0) | (false_positive > 0)):#if both true_positive and false_positive are zeros than this calculation makes no sense 0/0
+        precision = (true_positive) / (true_positive + false_positive) 
+    else:#in case 0/0, precision is just 0
+        precision = 0
     #returning results
     return precision
 ##this function calculates recall of model results (based on confusion matrix results) for binary classification
 def getRecallBin(true_positive,false_negative):
     #calculating recal (precision is ratio of true positives out of prediciton that are positve in ground truth)
-    recall = (true_positive) / (true_positive + false_negative) 
+    if((true_positive > 0) | (false_negative > 0)):
+        recall = (true_positive) / (true_positive + false_negative) #if both true_positive and false_negative are zeros than this calculation makes no sense 0/0
+    else:#in case 0/0, precision is just 0
+        recall
     #returning results
     return recall
 #this function gets accuracy of multi class model
