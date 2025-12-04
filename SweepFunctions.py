@@ -105,17 +105,17 @@ def train_one_epoch(net, dataInput_train, dataTarget_train, cfg):
     #training model for one epoch based on optimizer selected
     match cfg_optimizer:
         case "sgd":
-            net_out = train_minibatch_sgd(net, dataInput_train, dataTarget_train, 1, cfg_lr, cfg_batch_size, loss_derivative,l1_coeff=l1_coeff_in,l2_coeff=l2_coeff_in, grad_clip = cfg_grad_clip)
+            net_out,grads = train_minibatch_sgd(net, dataInput_train, dataTarget_train, 1, cfg_lr, cfg_batch_size, loss_derivative,l1_coeff=l1_coeff_in,l2_coeff=l2_coeff_in, grad_clip = cfg_grad_clip)
         case "sgd_momentum":
-            net_out = train_minibatch_sgd_momentum(net, dataInput_train, dataTarget_train, 1, cfg_lr, cfg_batch_size, loss_derivative, momentum = cfg_momentum,l1_coeff=l1_coeff_in,l2_coeff=l2_coeff_in, grad_clip = cfg_grad_clip)
+            net_out,grads = train_minibatch_sgd_momentum(net, dataInput_train, dataTarget_train, 1, cfg_lr, cfg_batch_size, loss_derivative, momentum = cfg_momentum,l1_coeff=l1_coeff_in,l2_coeff=l2_coeff_in, grad_clip = cfg_grad_clip)
         case "rmsprop":
-            net_out = train_minibatch_rmsprop(net, dataInput_train, dataTarget_train, 1, cfg_lr, cfg_batch_size, loss_derivative, beta=cfg_beta, l1_coeff=l1_coeff_in, l2_coeff=l2_coeff_in, grad_clip = cfg_grad_clip)
+            net_out,grads = train_minibatch_rmsprop(net, dataInput_train, dataTarget_train, 1, cfg_lr, cfg_batch_size, loss_derivative, beta=cfg_beta, l1_coeff=l1_coeff_in, l2_coeff=l2_coeff_in, grad_clip = cfg_grad_clip)
         case "nag":
-            net_out = train_minibatch_nag(net, dataInput_train, dataTarget_train, 1, cfg_lr, cfg_batch_size, loss_derivative, momentum = cfg_momentum, l1_coeff=l1_coeff_in, l2_coeff=l2_coeff_in, grad_clip = cfg_grad_clip)
+            net_out,grads = train_minibatch_nag(net, dataInput_train, dataTarget_train, 1, cfg_lr, cfg_batch_size, loss_derivative, momentum = cfg_momentum, l1_coeff=l1_coeff_in, l2_coeff=l2_coeff_in, grad_clip = cfg_grad_clip)
         case "adam":
-            net_out = train_minibatch_adam(net, dataInput_train, dataTarget_train, 1, cfg_lr, cfg_batch_size, loss_derivative, beta1 = cfg_beta1, beta2 = cfg_beta2, l1_coeff=l1_coeff_in, l2_coeff=l2_coeff_in, grad_clip = cfg_grad_clip)
+            net_out,grads = train_minibatch_adam(net, dataInput_train, dataTarget_train, 1, cfg_lr, cfg_batch_size, loss_derivative, beta1 = cfg_beta1, beta2 = cfg_beta2, l1_coeff=l1_coeff_in, l2_coeff=l2_coeff_in, grad_clip = cfg_grad_clip)
     #returning trained network
-    return net_out
+    return net_out, grads
 #this is main function of WandBi run
 def main(args=None):
     #getting name of project (from WandBi example)
@@ -160,7 +160,7 @@ def main(args=None):
         # Execute the training loop and log the performance values to W&B
         for epoch in np.arange(1, (cfg_epochs+1)):
             #training network for one epoch
-            net = train_one_epoch(net, dataInput_train, dataTarget_train, cfg)
+            net, grads = train_one_epoch(net, dataInput_train, dataTarget_train, cfg)
             #getting network predictions on train and test sets
             prediction_train = net.predictClassMulti(dataInput_train)
             prediction_val = net.predictClassMulti(dataInput_test)
@@ -180,3 +180,13 @@ def main(args=None):
                     "val_loss": loss_val,
                 }
             )
+            #logging parameters(weights+biases) histograms
+            for iLayer, weights_matrix in enumerate(net.weights_list):
+                #logging parameters of current layer
+                run.log({f"parameters/layer{iLayer}": wandb.Histogram(weights_matrix)})
+            #logging gradient norms
+            for iLayer, gradient in enumerate(grads):
+                #getting gradient norm of current layer
+                gradient_norm = np.linalg.norm(gradient)
+                #logging gradient norm of current layer
+                run.log({f"grad_norm/layer{iLayer}": wandb.Histogram(gradient_norm)})
