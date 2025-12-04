@@ -1,4 +1,5 @@
 import numpy as np
+import matplotlib.pyplot as plt
 
 #this is .py file with model testing functions 
 
@@ -51,3 +52,39 @@ def getAccuracy(ground_truth,predictions):
     accuracy = accurate/total
     #returning results
     return accuracy
+#
+def getConfMatCompMulti(ground_truth,predictions, num_classes=10):
+    #
+    cm = np.zeros((num_classes, num_classes), dtype=int)
+    #
+    for t, p in zip(ground_truth, predictions):
+        cm[t, p] += 1
+    return cm
+#
+def plot_confusion_matrix(cm, class_names=None, title="Confusion Matrix"):
+    num_classes = cm.shape[0]
+    if class_names is None:
+        class_names = [str(i) for i in range(num_classes)]
+
+    plt.figure(figsize=(7, 6))
+    plt.imshow(cm, interpolation="nearest")
+    plt.title(title)
+    plt.colorbar()
+
+    tick_marks = np.arange(num_classes)
+    plt.xticks(tick_marks, class_names, rotation=45, ha="right")
+    plt.yticks(tick_marks, class_names)
+
+    thresh = cm.max() / 2.0
+    for i in range(num_classes):
+        for j in range(num_classes):
+            plt.text(
+                j, i, str(cm[i, j]),
+                ha="center", va="center",
+                color="white" if cm[i, j] > thresh else "black"
+            )
+
+    plt.ylabel("True label")
+    plt.xlabel("Predicted label")
+    plt.tight_layout()
+    plt.show()

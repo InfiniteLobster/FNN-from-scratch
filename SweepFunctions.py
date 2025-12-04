@@ -1,5 +1,4 @@
 #general libraries
-import pandas as pd
 import numpy as np
 import copy
 import wandb
@@ -13,9 +12,9 @@ from SuppFunctions import *
 from TestingFunctions import *
 
 
-#
+#this is function that selects Loss function derivative based on string name of loss functions
 def getLossDer(name):
-    #
+    #switch statement for loss function selection
     match name:
         case "MeanSquaredError":
             loss_derivative = MeanSquaredErrorDerivative
@@ -23,9 +22,9 @@ def getLossDer(name):
             loss_derivative = CrossEntropyDerivative
         case "SoftmaxCrossEntropy":
             loss_derivative = SoftmaxCrossEntropyDerivative
-    #
+    #returning result of selection
     return loss_derivative
-#
+#this function downloads and prepare dataset based on its name (currently only mnist and cifar-10 are available)
 def getDataset(name):
     #checking which dataset is used
     match name:
@@ -46,9 +45,9 @@ def getDataset(name):
     dataInput_test =  (x_test_flattened.T/255.0)
     #returning dataset to train
     return dataTarget_train,dataTarget_test,dataInput_train,dataInput_test
-#
+#this function selects activation function based on it name in string variables
 def getActivFunct(name): 
-    #
+    #switch statement for activation function selection
     match name:
         case "identity":
             activ_function = identity
@@ -62,11 +61,11 @@ def getActivFunct(name):
             activ_function = leaky_relu
         case "softmax":
             activ_function = softmax
-    #
+    #returning results of selection
     return activ_function
-#
+#this is function that selects Loss function based on string name of it
 def getLossFunct(name): 
-    #
+    #switch statement for loss function selection
     match name:
         case "MeanSquaredError":
             loss_function = MeanSquaredError
@@ -74,14 +73,9 @@ def getLossFunct(name):
             loss_function = CrossEntropy
         case "SoftmaxCrossEntropy":
             loss_function = CrossEntropy
-    #
+    #returning result of selection
     return loss_function
-
-
-
-
-
-#
+#this is function that performs one epoch of FNN training based on WandBi configuration file 
 def train_one_epoch(net, dataInput_train, dataTarget_train, cfg):
     #getting training parameters from the config variable
     cfg_optimizer = cfg.optimizer
@@ -122,12 +116,11 @@ def train_one_epoch(net, dataInput_train, dataTarget_train, cfg):
             net_out = train_minibatch_adam(net, dataInput_train, dataTarget_train, 1, cfg_lr, cfg_batch_size, loss_derivative, beta1 = cfg_beta1, beta2 = cfg_beta2, l1_coeff=l1_coeff_in, l2_coeff=l2_coeff_in, grad_clip = cfg_grad_clip)
     #returning trained network
     return net_out
-#
-#
+#this is main function of WandBi run
 def main(args=None):
-    #
+    #getting name of project (from WandBi example)
     project = args.project if args else None
-    #
+    #starting WandBi run
     with wandb.init(project=project) as run:
         #getting configuration
         cfg = run.config
@@ -140,18 +133,18 @@ def main(args=None):
         cfg_activation_output = cfg.activation_output
         cfg_loss_function = cfg.loss_function
         cfg_weights_init = cfg.weights_init
-        #
+        #getting dataset for training
         dataTarget_train,dataTarget_test,dataInput_train,dataInput_test = getDataset(cfg_dataset)
-        #
+        #getting information on amount of units in input and output layers
         num_input = dataInput_train.shape[0]
         num_output = dataTarget_train.shape[0]
-        #
+        #getting hidden layers structure
         hidden_layers = [cfg_num_hidden_units] * cfg_num_hidden_layers
-        #
+        #adding input and output layers information to hidden layer structure to prepare FFN architecture for training
         arch_net = hidden_layers
         arch_net.insert(0,num_input)
         arch_net.append(num_output)
-        #
+        #getting activation function for hidden layers and output layer
         activation_hidden = getActivFunct(cfg_activation_hidden)
         activation_output = getActivFunct(cfg_activation_output)
         #declaring network
@@ -159,25 +152,25 @@ def main(args=None):
                             [activation_hidden,activation_output],
                             method_ini = cfg_weights_init
                             )
-        #
+        #getting loss function for loss calculation
         loss_function = getLossFunct(cfg_loss_function)
         #decoding test set(needed for network accuracy)
         dataTarget_test_decode = one_hot_decode(dataTarget_test)
         dataTarget_train_decode = one_hot_decode(dataTarget_train)
         # Execute the training loop and log the performance values to W&B
         for epoch in np.arange(1, (cfg_epochs+1)):
-            #
+            #training network for one epoch
             net = train_one_epoch(net, dataInput_train, dataTarget_train, cfg)
-            #
+            #getting network predictions on train and test sets
             prediction_train = net.predictClassMulti(dataInput_train)
             prediction_val = net.predictClassMulti(dataInput_test)
-            #
+            #getting loss and accuracy on training data
             loss_train = loss_function(dataTarget_train,prediction_train)
             accuracy_train = getAccuracy(dataTarget_train_decode,prediction_train)
-            #
+            #getting loss and accuracy on test data
             loss_val = loss_function(dataTarget_test,prediction_val)
             accuracy_val = getAccuracy(dataTarget_test_decode,prediction_val)
-            #
+            #logging results of epoch training to WandBi
             run.log(
                 {
                     "epoch": epoch,
