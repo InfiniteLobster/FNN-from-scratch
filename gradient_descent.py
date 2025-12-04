@@ -1,26 +1,24 @@
 import numpy as np
 from LossFunctions import *
-import SuppFunctions  # for clip_gradient
+from SuppFunctions import * # for clip_gradient
 from ErrorClasses import *
 
 
-# Helper: make sure inputs/targets have correct shape
-def _prepare_data(network, inputs, targets):
-    inputs = np.array(inputs, dtype=float)
-    targets = np.array(targets, dtype=float)
-
-    # If targets are (n_samples, n_outputs), fix them
-    if targets.shape[0] != network.weights_list[-1].shape[0]:
+# Helper: makes sure that targets have correct shape (for some reason NumPy sometimes(not always, was caught only in one dataset) transposes the arrays before passing them to function, so they arrive in wrong shape. This function should fix it)
+def _prepare_data(shape_output_layer,  targets):
+    #it is first checked if problem with matching sizes occurs
+    if (targets.shape[0] != shape_output_layer):
+        #transposing the array to hopefully resolve the issue
         targets = targets.T
-        if(targets.shape[0] != network.weights_list[-1].shape[0]):
+        #it is checked if operation resolved the issue
+        if(targets.shape[0] != shape_output_layer):
+            #if shapes doesn't match after transpose, then there is problem with input to the function, not NumPy error
             raise NotSupportedInputGiven("Network training","Targets does not match network outputs")
+    #returning values (both unchanged and changed, because if code reaches this step everything should be allright. If it is not error is thrown in nested if statments)
+    return targets
 
-    n_samples = inputs.shape[1]
-    return inputs, targets, n_samples
 
-
-# 1. MINI-BATCH STOCHASTIC GRADIENT DESCENT
-
+#SGD training loop
 def train_minibatch_sgd(network,
                         inputs,
                         targets,
@@ -37,62 +35,52 @@ def train_minibatch_sgd(network,
     inputs:  np.ndarray of shape (n_features, n_samples)
     targets: np.ndarray of shape (n_outputs, n_samples)
     """
-
-    inputs, targets, n_samples = _prepare_data(network, inputs, targets)
-
+    #checking for NumPy transpose mistake and solving it(throwing error if there is other problem with shapes of output layer and given targets)
+    targets = _prepare_data(network.weights_list[-1].shape[0], targets)
+    #getting number of examples to train network on(information needed for training)
+    n_samples = inputs.shape[1]
+    #training loop
     for epoch in range(epochs):
-
-        # Shuffle sample indices so that batches are random each epoch
+        #Shuffle sample indices so that batches are random each epoch
         indices = np.random.permutation(n_samples)
-
-        # Process the dataset in chunks of size batch_size
+        #Process the dataset in chunks of size batch_size (batching)
         for start in range(0, n_samples, batch_size):
-
-            # Integer indices for this batch
+            #getting indices of examples to be used for this batch training
             batch_idx = indices[start:start + batch_size]
-
-            # Batch data
-            x_batch = inputs[:, batch_idx]
-            y_batch = targets[:, batch_idx]
-            B = x_batch.shape[1]  # effective batch size
-
-            # Forward pass on the batch
-            z_values, a_values = network.forward(x_batch)
-
-            # Backward pass (gradients summed over batch)
-            grad_W = network.backward(z_values, a_values, y_batch, loss_derivative)
-
-            # Weight update
-            for i in range(len(network.weights_list)):
-                W = network.weights_list[i]
-
+            #getting data for current batch into variables
+            inputs_batch = inputs[:, batch_idx]
+            targets_batch = targets[:, batch_idx]
+            #getting batch size for gradient division (as all batches are summed, so they need to be divided to get average across batches). It needs to be checked as last batch might not have the same amount of examples in it as the rest
+            batch_size_effective = inputs_batch.shape[1]  # effective batch size
+            #forward pass to get network output
+            z_values, a_values = network.forward(inputs_batch)
+            #Backward pass (gradients summed over batch) -> getting gradients
+            grad_W = network.backward(z_values, a_values, targets_batch, loss_derivative)
+            #weights update(iterating through weight arrays of layers)
+            for iLayer in range(len(network.weights_list)):
+                #getting weights array of current layer
+                weights_array = network.weights_list[iLayer]
                 # Convert summed gradient to average gradient
-                g = grad_W[i] / B
-
-                # ----- L2 regularization (no bias) -----
+                grad = grad_W[iLayer] / batch_size_effective
+                #L2 regularization(if declared)
                 if l2_coeff != 0.0:
-                    reg = l2_coeff * W.copy()
-                    reg[:, 0] = 0.0  # do not regularize bias column
-                    g += reg
-
-                # ----- L1 regularization (no bias) -----
-                if l1_coeff != 0.0:
-                    reg_l1 = l1_coeff * np.sign(W.copy())
-                    reg_l1[:, 0] = 0.0
-                    g += reg_l1
-
-                # Optional gradient clipping
+                    reg = l2_coeff * weights_array.copy()#calculating regularization value
+                    reg[:, 0] = 0.0  ##we do not regularize bias column
+                    grad += reg#applying regularization
+                #L1 regularization(if declared)
+                    reg_l1 = l1_coeff * np.sign(weights_array.copy())#calculating regularization value
+                    reg_l1[:, 0] = 0.0##we do not regularize bias column
+                    grad += reg_l1#applying regularization
+                #gradient clipping(if declared)
                 if grad_clip != 0.0:
-                    g = SuppFunctions.clip_gradient(g, grad_clip)
-
-                # Gradient descent step
-                network.weights_list[i] = W - learning_rate * g
-
+                    grad = clip_gradient(grad, grad_clip)
+                #gradient descent step
+                network.weights_list[iLayer] = weights_array - learning_rate * grad
+    #trained network and last gradient (weights) are returned. Gradient is returned for sweep
     return network,grad_W
 
 
-# 1b. MINI-BATCH SGD WITH MOMENTUM
-
+#SGD with momentum training loop
 def train_minibatch_sgd_momentum(network,
                                  inputs,
                                  targets,
@@ -107,59 +95,55 @@ def train_minibatch_sgd_momentum(network,
     """
     Train the FNN using mini-batch SGD with classical momentum.
     """
-
-    inputs, targets, n_samples = _prepare_data(network, inputs, targets)
-
-    # Velocity (momentum) for each layer
-    v = [np.zeros_like(W) for W in network.weights_list]
-
+    #checking for NumPy transpose mistake and solving it(throwing error if there is other problem with shapes of output layer and given targets)
+    targets = _prepare_data(network.weights_list[-1].shape[0], targets)
+    #getting number of examples to train network on(information needed for training)
+    n_samples = inputs.shape[1]
+    #declaring Velocity (momentum) variable for each layer (for pre-allocation)
+    velocity = [np.zeros_like(W) for W in network.weights_list]
+    #training loop
     for epoch in range(epochs):
-
-        # Shuffle data each epoch
+        #Shuffle sample indices so that batches are random each epoch
         indices = np.random.permutation(n_samples)
-
+        #Process the dataset in chunks of size batch_size (batching)
         for start in range(0, n_samples, batch_size):
-
+            #getting indices of examples to be used for this batch training
             batch_idx = indices[start:start + batch_size]
-
-            x_batch = inputs[:, batch_idx]
-            y_batch = targets[:, batch_idx]
-            B = x_batch.shape[1]
-
-            # Forward / Backward on this batch
-            z_values, a_values = network.forward(x_batch)
-            grad_W = network.backward(z_values, a_values, y_batch, loss_derivative)
-
-            for i in range(len(network.weights_list)):
-                W = network.weights_list[i]
-                g = grad_W[i] / B
-
-                # L2 regularization (no bias)
+            #getting data for current batch into variables
+            inputs_batch = inputs[:, batch_idx]
+            targets_batch = targets[:, batch_idx]
+            #getting batch size for gradient division (as all batches are summed, so they need to be divided to get average across batches). It needs to be checked as last batch might not have the same amount of examples in it as the rest
+            batch_size_effective = inputs_batch.shape[1]
+            #forward pass to get network output
+            z_values, a_values = network.forward(inputs_batch)
+            #Backward pass (gradients summed over batch) -> getting gradients
+            grad_W = network.backward(z_values, a_values, targets_batch, loss_derivative)
+            #weights update(iterating through weight arrays of layers)
+            for iLayer in range(len(network.weights_list)):
+                #getting weights array of current layer
+                weights_array = network.weights_list[iLayer]
+                #converting summed gradient to average gradient
+                grad = grad_W[iLayer] / batch_size_effective
+                #L2 regularization(if declared)
                 if l2_coeff != 0.0:
-                    reg = l2_coeff * W.copy()
-                    reg[:, 0] = 0.0
-                    g += reg
-
-                # L1 regularization (no bias)
+                    reg = l2_coeff * weights_array.copy()#calculating regularization value
+                    reg[:, 0] = 0.0#we do not regularize bias column
+                    grad += reg#applying regularization
+                #L1 regularization(if declared)
                 if l1_coeff != 0.0:
-                    reg_l1 = l1_coeff * np.sign(W.copy())
-                    reg_l1[:, 0] = 0.0
-                    g += reg_l1
-
+                    reg_l1 = l1_coeff * np.sign(weights_array.copy())#calculating regularization value
+                    reg_l1[:, 0] = 0.0#we do not regularize bias column
+                    grad += reg_l1#applying regularization
+                #gradient clipping(if declared)
                 if grad_clip != 0.0:
-                    g = SuppFunctions.clip_gradient(g, grad_clip)
-
-                # Momentum update: v = mu * v - lr * g
-                v[i] = momentum * v[i] - learning_rate * g
-
-                # Weight update: w = w + v
-                network.weights_list[i] = W + v[i]
-
+                    grad = clip_gradient(grad, grad_clip)
+                #Momentum update: v = mu * v - lr * g
+                velocity[iLayer] = momentum * velocity[iLayer] - learning_rate * grad
+                #Gradient descent step
+                network.weights_list[iLayer] = weights_array + velocity[iLayer]
+    #trained network and last gradient (weights) are returned. Gradient is returned for sweep
     return network,grad_W
-
-
-# 2. MINI-BATCH RMSPROP
-
+#RMSPROP training loop
 def train_minibatch_rmsprop(network,
                             inputs,
                             targets,
@@ -177,64 +161,59 @@ def train_minibatch_rmsprop(network,
 
     beta: decay rate for the running average of squared gradients
     """
-
-    inputs, targets, n_samples = _prepare_data(network, inputs, targets)
-
-    # Running average of squared gradients for each layer
-    r = [np.zeros_like(W) for W in network.weights_list]
-
+    #checking for NumPy transpose mistake and solving it(throwing error if there is other problem with shapes of output layer and given targets)
+    targets = _prepare_data(network.weights_list[-1].shape[0], targets)
+    #getting number of examples to train network on(information needed for training)
+    n_samples = inputs.shape[1]
+    #declaring average of squared gradients variable for each layer (for pre-allocation) 
+    rms = [np.zeros_like(W) for W in network.weights_list]
+    #training loop
     for epoch in range(epochs):
-
-        # Shuffle data each epoch
+        #Shuffle sample indices so that batches are random each epoch
         indices = np.random.permutation(n_samples)
-
+        #Process the dataset in chunks of size batch_size (batching)
         for start in range(0, n_samples, batch_size):
-
+            #getting indices of examples to be used for this batch training
             batch_idx = indices[start:start + batch_size]
-
-            x_batch = inputs[:, batch_idx]
-            y_batch = targets[:, batch_idx]
-            B = x_batch.shape[1]
-
-            # Forward / Backward on this batch
-            z_values, a_values = network.forward(x_batch)
-            grad_W = network.backward(z_values, a_values, y_batch, loss_derivative)
-
-            # RMSprop update per layer
-            for i in range(len(network.weights_list)):
-
-                g = grad_W[i] / B
-                W = network.weights_list[i]
-
-                # L2 regularization (no bias)
+            #getting data for current batch into variables
+            inputs_batch = inputs[:, batch_idx]
+            targets_batch = targets[:, batch_idx]
+            #getting batch size for gradient division (as all batches are summed, so they need to be divided to get average across batches). It needs to be checked as last batch might not have the same amount of examples in it as the rest
+            batch_size_effective = inputs_batch.shape[1]
+            #forward pass to get network output
+            z_values, a_values = network.forward(inputs_batch)
+            #Backward pass (gradients summed over batch) -> getting gradients
+            grad_W = network.backward(z_values, a_values, targets_batch, loss_derivative)
+            #weights update(iterating through weight arrays of layers)
+            for iLayer in range(len(network.weights_list)):
+                #getting weights array of current layer
+                weights_array = network.weights_list[iLayer]
+                # Convert summed gradient to average gradient
+                grad = grad_W[iLayer] / batch_size_effective
+                #L2 regularization(if declared)
                 if l2_coeff != 0.0:
-                    reg = l2_coeff * W.copy()
-                    reg[:, 0] = 0.0
-                    g += reg
-
-                # L1 regularization (no bias)
+                    reg = l2_coeff * weights_array.copy()#calculating regularization value
+                    reg[:, 0] = 0.0#we do not regularize bias column
+                    grad += reg#applying regularization
+                #L1 regularization(if declared)
                 if l1_coeff != 0.0:
-                    reg_l1 = l1_coeff * np.sign(W.copy())
-                    reg_l1[:, 0] = 0.0
-                    g += reg_l1
-
+                    reg_l1 = l1_coeff * np.sign(weights_array.copy())#calculating regularization value
+                    reg_l1[:, 0] = 0.0#we do not regularize bias column
+                    grad += reg_l1#applying regularization
+                #gradient clipping(if declared)
                 if grad_clip != 0.0:
-                    g = SuppFunctions.clip_gradient(g, grad_clip)
-
-                # Update running average of squared gradients
-                r[i] = beta * r[i] + (1.0 - beta) * (g * g)
-
-                # RMSprop parameter update
-                update = learning_rate * g / (np.sqrt(r[i]) + epsilon)
-
-                # Gradient descent step
-                network.weights_list[i] = W - update
-
+                    grad = clip_gradient(grad, grad_clip)
+                #Updating running average of squared gradients
+                rms[iLayer] = beta * rms[iLayer] + (1.0 - beta) * (grad * grad)
+                #RMSprop parameter update
+                update = learning_rate * grad / (np.sqrt(rms[iLayer]) + epsilon)
+                #gradient descent step
+                network.weights_list[iLayer] = weights_array - update
+    #trained network and last gradient (weights) are returned. Gradient is returned for sweep
     return network,grad_W
 
 
-# 3. MINI-BATCH NESTEROV ACCELERATED GRADIENT (NAG)
-
+#Nestorov accelerated gradient (NAG) training loop
 def train_minibatch_nag(network,
                         inputs,
                         targets,
@@ -249,70 +228,64 @@ def train_minibatch_nag(network,
     """
     Train the FNN using mini-batch Nesterov Accelerated Gradient (NAG).
     """
-
-    inputs, targets, n_samples = _prepare_data(network, inputs, targets)
-
-    # Velocity (momentum) for each layer, same shape as weights
-    v = [np.zeros_like(W) for W in network.weights_list]
-
+    #checking for NumPy transpose mistake and solving it(throwing error if there is other problem with shapes of output layer and given targets)
+    targets = _prepare_data(network.weights_list[-1].shape[0], targets)
+    #getting number of examples to train network on(information needed for training)
+    n_samples = inputs.shape[1]
+    #declaring Velocity (momentum) variable for each layer (for pre-allocation)
+    velocity = [np.zeros_like(W) for W in network.weights_list]
+    #training loop
     for epoch in range(epochs):
-
-        # Shuffle data each epoch
+        #Shuffle sample indices so that batches are random each epoch
         indices = np.random.permutation(n_samples)
-
+        #Process the dataset in chunks of size batch_size (batching)
         for start in range(0, n_samples, batch_size):
-
+            #getting indices of examples to be used for this batch training
             batch_idx = indices[start:start + batch_size]
-
-            x_batch = inputs[:, batch_idx]
-            y_batch = targets[:, batch_idx]
-            B = x_batch.shape[1]
-
-            # 1. Look-ahead step: w_lookahead = w + momentum * v
-            for i in range(len(network.weights_list)):
-                network.weights_list[i] = network.weights_list[i] + momentum * v[i]
-
-            # 2. Forward / Backward at look-ahead weights
-            z_values, a_values = network.forward(x_batch)
-            grad_W = network.backward(z_values, a_values, y_batch, loss_derivative)
-
-            # 3. Update velocity and weights (Nesterov rule)
-            for i in range(len(network.weights_list)):
-
-                g = grad_W[i] / B
-                W = network.weights_list[i]
-
-                # L2 regularization (no bias)
+            #getting data for current batch into variables
+            inputs_batch = inputs[:, batch_idx]
+            targets_batch = targets[:, batch_idx]
+            #getting batch size for gradient division (as all batches are summed, so they need to be divided to get average across batches). It needs to be checked as last batch might not have the same amount of examples in it as the rest
+            batch_size_effective = inputs_batch.shape[1]  # effective batch size
+            #Look-ahead step: w_lookahead = w + momentum * v
+            for iLayer in range(len(network.weights_list)):
+                network.weights_list[iLayer] = network.weights_list[iLayer] + momentum * velocity[iLayer]
+            #forward pass to get network output at look-ahead weights
+            z_values, a_values = network.forward(inputs_batch)
+            #Backward pass at look-ahead weights (gradients summed over batch) -> getting gradients
+            grad_W = network.backward(z_values, a_values, targets_batch, loss_derivative)
+            #Update velocity and weights (Nesterov rule) - > iterating through weight arrays of layers
+            for iLayer in range(len(network.weights_list)):
+                #getting weights array of current layer
+                weights_array = network.weights_list[iLayer]
+                # Convert summed gradient to average gradient
+                grad = grad_W[iLayer] / batch_size_effective
+                #L2 regularization(if declared)
                 if l2_coeff != 0.0:
-                    reg = l2_coeff * W.copy()
-                    reg[:, 0] = 0.0
-                    g += reg
-
-                # L1 regularization (no bias)
+                    reg = l2_coeff * weights_array.copy()#calculating regularization value
+                    reg[:, 0] = 0.0#we do not regularize bias column
+                    grad += reg#applying regularization
+                #L1 regularization(if declared)
                 if l1_coeff != 0.0:
-                    reg_l1 = l1_coeff * np.sign(W.copy())
-                    reg_l1[:, 0] = 0.0
-                    g += reg_l1
-
+                    reg_l1 = l1_coeff * np.sign(weights_array.copy())#calculating regularization value
+                    reg_l1[:, 0] = 0.0#we do not regularize bias column
+                    grad += reg_l1#applying regularization
+                #gradient clipping(if declared)
                 if grad_clip != 0.0:
-                    g = SuppFunctions.clip_gradient(g, grad_clip)
-
+                    grad = clip_gradient(grad, grad_clip)
                 # Save previous velocity
-                v_prev = v[i].copy()
-
+                v_prev = velocity[iLayer].copy()
                 # NAG velocity update:
-                v[i] = momentum * v[i] - learning_rate * g
-
+                velocity[iLayer] = momentum * velocity[iLayer] - learning_rate * grad
                 # We are currently at w_look = w_t + momentum * v_prev.
                 # We want final w_{t+1} = w_t + v_new.
                 # => w_{t+1} = w_look + (v_new - momentum * v_prev)
-                network.weights_list[i] = W + (v[i] - momentum * v_prev)
-
+                network.weights_list[iLayer] = weights_array + (velocity[iLayer] - momentum * v_prev)
+    #trained network and last gradient (weights) are returned. Gradient is returned for sweep
     return network,grad_W
 
 
-# 4. MINI-BATCH ADAM OPTIMIZER
-
+#ADAM OPTIMIZER training loop
 def train_minibatch_adam(network,
                          inputs,
                          targets,
@@ -327,72 +300,62 @@ def train_minibatch_adam(network,
                          l2_coeff=0.0,
                          grad_clip=0.0):
 
-    inputs, targets, n_samples = _prepare_data(network, inputs, targets)
-
+    #checking for NumPy transpose mistake and solving it(throwing error if there is other problem with shapes of output layer and given targets)
+    targets = _prepare_data(network.weights_list[-1].shape[0], targets)
+    #getting number of examples to train network on(information needed for training)
+    n_samples = inputs.shape[1]
     # Initialize Adam moment vectors for each layer.
-    m = [np.zeros_like(W) for W in network.weights_list]  # first moment
-    v = [np.zeros_like(W) for W in network.weights_list]  # second moment
-
-    t = 0  # Adam time step counter (increments per batch)
-
+    mom1 = [np.zeros_like(W) for W in network.weights_list]  # first moment
+    mom2 = [np.zeros_like(W) for W in network.weights_list]  # second moment
+    step_count = 0  # Adam time step counter (increments per batch)
     # Loop over dataset
     for epoch in range(epochs):
-
         # Shuffle data order this epoch
         indices = np.random.permutation(n_samples)
-
-        # Mini-batch loop
+        #Process the dataset in chunks of size batch_size (batching)
         for start in range(0, n_samples, batch_size):
-
+            #getting indices of examples to be used for this batch training
             batch_idx = indices[start:start + batch_size]
-
-            # Extract batch: shapes (features, B) and (outputs, B)
-            x_batch = inputs[:, batch_idx]
-            y_batch = targets[:, batch_idx]
-            B = x_batch.shape[1]
-
-            # Forward and Backward on this batch
-            z_values, a_values = network.forward(x_batch)
-            grad_W = network.backward(z_values, a_values, y_batch, loss_derivative)
-
-            # Increment Adam time step
-            t += 1
-
-            # Adam update for each layer
-            for i in range(len(network.weights_list)):
-
-                g = grad_W[i] / B
-                W = network.weights_list[i]
-
-                # L2 regularization (no bias)
+            #getting data for current batch into variables
+            inputs_batch = inputs[:, batch_idx]
+            targets_batch = targets[:, batch_idx]
+            #getting batch size for gradient division (as all batches are summed, so they need to be divided to get average across batches). It needs to be checked as last batch might not have the same amount of examples in it as the rest
+            batch_size_effective = inputs_batch.shape[1]  # effective batch size
+            #forward pass to get network output
+            z_values, a_values = network.forward(inputs_batch)
+            #Backward pass (gradients summed over batch) -> getting gradients
+            grad_W = network.backward(z_values, a_values, targets_batch, loss_derivative)
+            #increment of Adam time step
+            step_count += 1
+            #weights update(iterating through weight arrays of layers)
+            for iLayer in range(len(network.weights_list)):
+                #getting weights array of current layer
+                weights_array = network.weights_list[iLayer]
+                # Convert summed gradient to average gradient
+                grad = grad_W[iLayer] / batch_size_effective
+                #L2 regularization(if declared)
                 if l2_coeff != 0.0:
-                    reg = l2_coeff * W.copy()
-                    reg[:, 0] = 0.0
-                    g += reg
-
-                # L1 regularization (no bias)
+                    reg = l2_coeff * weights_array.copy()#calculating regularization value
+                    reg[:, 0] = 0.0#we do not regularize bias column
+                    grad += reg#applying regularization
+                #L1 regularization(if declared)
                 if l1_coeff != 0.0:
-                    reg_l1 = l1_coeff * np.sign(W.copy())
-                    reg_l1[:, 0] = 0.0
-                    g += reg_l1
-
+                    reg_l1 = l1_coeff * np.sign(weights_array.copy())#calculating regularization value
+                    reg_l1[:, 0] = 0.0#we do not regularize bias column
+                    grad += reg_l1#applying regularization
+                #gradient clipping(if declared)
                 if grad_clip != 0.0:
-                    g = SuppFunctions.clip_gradient(g, grad_clip)
-
-                # 1. Update biased first moment estimate
-                m[i] = beta1 * m[i] + (1.0 - beta1) * g
-
-                # 2. Update biased second moment estimate
-                v[i] = beta2 * v[i] + (1.0 - beta2) * (g * g)
-
-                # 3. Bias corrections
-                m_hat = m[i] / (1.0 - beta1 ** t)
-                v_hat = v[i] / (1.0 - beta2 ** t)
-
-                # 4. Compute parameter update
+                    grad = clip_gradient(grad, grad_clip)
+                #Updating biased first moment estimate
+                mom1[iLayer] = beta1 * mom1[iLayer] + (1.0 - beta1) * grad
+                #Updating biased second moment estimate
+                mom2[iLayer] = beta2 * mom2[iLayer] + (1.0 - beta2) * (grad * grad)
+                #making bias corrections
+                m_hat = mom1[iLayer] / (1.0 - beta1 ** step_count)
+                v_hat = mom2[iLayer] / (1.0 - beta2 ** step_count)
+                #computing parameter update
                 update = learning_rate * m_hat / (np.sqrt(v_hat) + epsilon)
-
-                # 5. Apply update (gradient descent direction)
-                network.weights_list[i] = W - update
-
+                #apply update (gradient descent step)
+                network.weights_list[iLayer] = weights_array - update
+    #trained network and last gradient (weights) are returned. Gradient is returned for sweep
     return network,grad_W
