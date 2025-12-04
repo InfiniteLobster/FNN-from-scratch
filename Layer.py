@@ -1,8 +1,10 @@
+#importing libraries needed for this file operation
 import numpy as np
 from Neuron import *
 from InitFunctions import  *
 from SuppFunctions import  *
 from ErrorClasses import *
+#this is .py file with Layer class. This class object simulate layer of neurons. It mainly functions as tool for deconstrunction of FNN for deeper analysis
 
 class Layer:
 #instance attributes

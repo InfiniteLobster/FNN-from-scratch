@@ -1,7 +1,8 @@
+#importing libraries needed for this file operation
 import numpy as np
 from ActivFunctions import *
 from ErrorClasses import *
-#this is .py file with supporting functions 
+#this is .py file with supporting functions -> functions that are used in this project, but weren't numerous enough or distinct enough to get their own file.
 
 
 #this function checks if np array is of desired data type and if not changes it into desired data type

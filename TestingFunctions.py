@@ -1,6 +1,6 @@
+#importing libraries needed for this file operation
 import numpy as np
 import matplotlib.pyplot as plt
-
 #this is .py file with model testing functions 
 
 

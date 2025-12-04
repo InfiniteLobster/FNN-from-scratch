@@ -1,7 +1,8 @@
+#importing libraries needed for this file operation
 import numpy as np
-from LossFunctions import *
 from SuppFunctions import * # for clip_gradient
 from ErrorClasses import *
+#this is .py file with optimizers functions. Each of the functions (excluding helper function) offers different way of training FNN.
 
 
 # Helper: makes sure that targets have correct shape (for some reason NumPy sometimes(not always, was caught only in one dataset) transposes the arrays before passing them to function, so they arrive in wrong shape. This function should fix it)
