@@ -18,7 +18,7 @@ Project goals:
   - Parameter histograms and gradient norms: **logging implemented** (SweepFunctions.py)
   - Hyperparameter sweeps (random or Bayesian) across architectures and optimizers: **done** (via SweepExample.ipynb, logged to WandBi team)
   - Summary reports comparing activation functions and initializations: **done** (WandBi team site)
-## WandBi team link: https://wandb.ai/DL_project_Group_70/projects
+## WandBi team link: https://wandb.ai/DL_project_Group_70/reports
 ## Project description
 xxx
 ## Implementation idea
