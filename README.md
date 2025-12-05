@@ -9,10 +9,10 @@ group 70:
 Project goals:
 - Implementing: (showcased in: TrainingExamples.ipynb and some parts tested in: Testing.ipynb)
   - Forward pass -> matrix multiplications + activation functions : **implemented** (FNN.py, ActivFunctions.py, SuppFunctions.py)
-  - Loss computation -> MSE or cross-entropy with L2 regularization : **implemented** (LossFunctions.py)
+  - Loss computation -> MSE or cross-entropy with L2 regularization : **implemented** (LossFunctions.py, OptimizerFunctions.py)
   - Backward pass -> manual derivative calculation and weight updates : **implemented** (FNN.py, SuppFunctions.py)
   - Training loop -> mini-batch gradient descent : **implemented** (OptimizerFunctions.py, SuppFunctions.py)
-  - Evaluation -> compute accuracy, loss curves, and confusion matrices : **implemented** (TestingFunctions.py)
+  - Evaluation -> compute accuracy, loss curves, and confusion matrices : **implemented** (TestingFunctions.py, SweepFunctions.py)
 - WandBi:
   - Learning curves (train_loss, val_loss, accuracy, val_acc): **logging implemented** (SweepFunctions.py)
   - Parameter histograms and gradient norms: **logging implemented** (SweepFunctions.py)
@@ -35,7 +35,7 @@ Furthermore special Softmax+Cross-Entropy option is availible, for cases when wh
 Normal option for softmax and Cross-Entropy (standard backward, i.e. calculating Jacobian etc.) is also possible, so it is option, not forced version. For optimizers, following were implemented: Stochastic Gradient Descent (SGD) [6], SGD with momentum [7], Root Mean Square Propagation (RMSprop) [8], Nestorov accelerated gradient (NAG) [9] and Adaptive Moment Estimation (Adam) [10].
 Also option to deconstruct network into layers and them into neurons with capability to perform forward pass was implemented. The idea behind it was to allow for network component analysis, specifically how they work on their own (and thus option of forward pass).
 Functions to compute accuracy and make confusion matrices are built-in. Creation of any accuracy or loss curves is not directly built-in into code as it would make training process longer, which is not desirable on CPU based approach (NumPy). 
-In our interpretation such outputs are possible and are showcased in WandBi sweeps as they were required. Nonethenless, base version (presented in TrainingExamples) have no such testing methods present (only accuracy calculation and confusion matrix plotting after training) for better efficiency of training.
+In our implementation such outputs are possible and are showcased in WandBi sweeps as they were required. Nonethenless, base version (presented in TrainingExamples) have no such testing methods present (only accuracy calculation and confusion matrix plotting after training) for better efficiency of training.
 
 ### WandBi
 According to the project goals FFNN implementation was used to performed WandBi sweeps (SweepFunctions.py and SweepExample.ipynb). Two datasets, MNIST [2] and CIFAR-10 [3], were used to perform sweeps. The best (at 05.12.2025 17:20) reached validation accuracy in sweeps for MNIST was 98.22% (dandy-sweep-112) and 54.22% (pretty-sweep-111) for CIFAR-10.
@@ -64,20 +64,20 @@ The main idea behind this implementation was to offer something not availible in
 For this reason tests were limited to standard networks capabilities (specific hyperparameters are described above).  
 
 ## Project files description:
-- Testing.ipynb: this is notebook in which basic implementations are tested (implementations themselves, not their effects on training etc.). Tests included testing if implementation works as intended and error handling of it (to inform in further steps of implementation and usage where problem occurs). Tested capabilities were objects initializations and forward pass for FNN, Layer and Neuron classes. Backward pass was only implemented and thus tested for FNN class. More compicated capabilities of project were tested in next files.
+- Testing.ipynb: this is the notebook in which basic implementations are tested (implementations themselves, not their effects on training etc.). Tests included testing if implementation works as intended and error handling of it (to inform in further steps of implementation and usage where problem occurs). Tested capabilities were objects initializations and forward pass for FNN, Layer and Neuron classes. Backward pass was only implemented and thus tested for FNN class. More compicated capabilities of project were tested in next files.
 - **TrainingExamples.ipynb**: this is notebook that showcases implementation of this project goal -> implementation of Feed-forward Neural Network from scratch with usage of NumPy. Whole training cycles are created on earlier mentioned datsets for both regularization and classification (binary and multi) tasks. They show that implementationw works as expected (trains to solve problems), i.e. is succesfull in reaching goal when expected and fails also when expected. This is basically a notebook to show how to use implemented methods and of course that they work.
 - SweepExample.ipynb: this notebook shows how to use created FNN system with WandBi. Most of the code behind it is implemented in SweepFunctions.py.
-- FNN.py: this is file with the code of FNN class. This is basis on which this whole project works. Objects of this class represent FFNN models. Initialization, forward and backward pass are implemented in this file.
-- Layer.py: this is file with the code of Layer class. Objects of this class represent single layer (possible multi neuron) network. It covers initialization and forward pass. Backward pass is not built-in in it as there is only one layer.
-- Neuron.py: this is file with the code of Neuron class. Objects of this class represent single layer, single neuron network. It covers initialization and forward pass. Backward pass is not built-in in it as there is only one layer.
-- InitFunctions.py: this is file in which different initialization methods are implemented. Handling of them is covered in class files where they are used.
-- ActivFunctions.py: this is file in which different activation functions and their derivatives are implemented. Handling of them is covered in class files where they are used.
-- LossFunctions.py: this is file in which different loss functions and their derivatives are implemented. Handling of them is covered in class files where they are used.
-- ErrorClasses.py: this is file in which different Error functions are implemented. Handling of them is covered in class files where they are used. Their implementation is fully composed on proper messaage sending.
-- OptimizersFunctions.py: this is file in which traning loops with different optimizers are implemented.
-- TestingFunctions.py: this is file in which different methods of model evaluation are implemented. They are used in TrainingExamples.ipynb or in SweepFunctions.py for model evaluation.
-- SuppFunctions.py: this is file in which all functions that didn't fit in any sepcific category are implemented. 
-- SweepFunctions.py: this is file in which all functions necessery for WandBi sweep are implemented.
+- FNN.py: this is the file with the code of FNN class. This is basis on which this whole project works. Objects of this class represent FFNN models. Initialization, forward and backward pass are implemented in this file.
+- Layer.py: this is the file with the code of Layer class. Objects of this class represent single layer (possible multi neuron) network. It covers initialization and forward pass. Backward pass is not built-in in it as there is only one layer.
+- Neuron.py: this is the file with the code of Neuron class. Objects of this class represent single layer, single neuron network. It covers initialization and forward pass. Backward pass is not built-in in it as there is only one layer.
+- InitFunctions.py: this is the file in which different initialization methods are implemented. Handling of them is covered in class files where they are used.
+- ActivFunctions.py: this is the file in which different activation functions and their derivatives are implemented. Handling of them is covered in class files where they are used.
+- LossFunctions.py: this is the file in which different loss functions and their derivatives are implemented. Handling of them is covered in class files where they are used.
+- ErrorClasses.py: this is the file in which different Error functions are implemented. Handling of them is covered in class files where they are used. Their implementation is fully composed on proper messaage sending.
+- OptimizersFunctions.py: this is the file  in which traning loops with different optimizers are implemented.
+- TestingFunctions.py: this is the file in which different methods of model evaluation are implemented. They are used in TrainingExamples.ipynb or in SweepFunctions.py for model evaluation.
+- SuppFunctions.py: this is the file in which all functions that didn't fit in any sepcific category are implemented. 
+- SweepFunctions.py: this is the file in which all functions necessery for WandBi sweep are implemented.
 ## References
 [1] Wolberg, W., Mangasarian, O., Street, N., & Street, W. (1993). Breast Cancer Wisconsin (Diagnostic) [Dataset]. UCI Machine Learning Repository. https://doi.org/10.24432/C5DW2B. From: https://archive.ics.uci.edu/dataset/17/breast+cancer+wisconsin+diagnostic  
 [2] LeCun, Yann; Cortez, Corinna; Burges, Christopher C.J. "The MNIST Handwritten Digit Database". Used by Keras.  
