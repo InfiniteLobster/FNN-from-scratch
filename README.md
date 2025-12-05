@@ -24,17 +24,17 @@ xxx
 ## Implementation idea
 xxx
 ## Project files description:
-- ActivFunctions.py: 
-- ErrorClasses.py
-- FNN.py
-- InitFunctions.py
-- Layer.py
-- LossFunctions.py
-- Neuron.py
-- OptimizersFunctions.py
-- SuppFunctions.py
-- SweepExample.ipynb
-- SweepFunctions.py
-- Testing.ipynb
-- TestingFunctions.py
-- TrainingExamples.ipynb
+- Testing.ipynb:
+- TrainingExamples.ipynb:
+- SweepExample.ipynb:
+- FNN.py:
+- Layer.py:
+- Neuron.py:
+- InitFunctions.py:
+- ActivFunctions.py:
+- LossFunctions.py:
+- ErrorClasses.py:
+- OptimizersFunctions.py:
+- TestingFunctions.py:
+- SuppFunctions.py:
+- SweepFunctions.py:
