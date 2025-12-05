@@ -21,7 +21,7 @@ Project goals:
 ## WandBi team link: https://wandb.ai/DL_project_Group_70/reports
 ## Project description
 ### General
-In this project flexible feed-forward neural network was implemented by using NumPy not any ready Machine Learning/Deep Learning library like PyTorch or Tenser Flow. From design perspective there is no limit on number of neurons or layers that can be used. 
+In this project flexible feed-forward neural network was implemented by using NumPy, not any ready Machine Learning/Deep Learning library like PyTorch or Tenser Flow. From design perspective there is no limit on number of neurons or layers that can be used. 
 It is so flexible in design, that each neuron in layer can have different activation function. It can be used for both regression and classification (binary and multi-class) tasks.
 For training both tabular and images (as long as it is collapsed for pixel vector) data can be used. This functionalities were tested on 3 datasets: Breast Cancer Wisconsin (Diagnostic) [1], MNIST [2] and CIFAR-10 [3].
 On first dataset both regression and binary classification was tested (models were trained without issues and reached expected results -> almost no mistakes as problem was easy for ANN). 
@@ -33,6 +33,7 @@ In this case to reach better results convolutional neural networks are needed, b
 For weigths initialization following methods were implemented: random, Xavier(Glorot) [4] and He(Kaiming) [5] with all having both Uniform and Normal distribution versions. As for further implementation, following activation functions were implemented: identity, sigmoid, tanh, ReLu, leaky ReLu and softmax. As for loss function both Mean Square Error and Cross-Entropy are implemented. Both l1 and l2 regularization were also added as options.
 Furthermore special Softmax+Cross-Entropy option is availible, for cases when whole output layer is softmax and used loss function is Cross-Entropy. It improves speed of calculations and results of training by directly calculating derivative with regards to the logits.
 Normal option for softmax and Cross-Entropy (standard backward, i.e. calculating Jacobian etc.) is also possible, so it is option, not forced version. For optimizers, following were implemented: Stochastic Gradient Descent (SGD) [6], SGD with momentum [7], Root Mean Square Propagation (RMSprop) [8], Nestorov accelerated gradient (NAG) [9] and Adaptive Moment Estimation (Adam) [10].
+Also option to deconstruct network into layers and them into neurons with capability to perform forward pass was implemented. The idea behind it was to allow for network component analysis, specifically how they work on their own (and thus option of forward pass).
 Functions to compute accuracy and make confusion matrices are built-in. Creation of any accuracy or loss curves is not directly built-in into code as it would make training process longer, which is not desirable on CPU based approach (NumPy). 
 In our interpretation such outputs are possible and are showcased in WandBi sweeps as they were required. Nonethenless, base version (presented in TrainingExamples) have no such testing methods present (only accuracy calculation and confusion matrix plotting after training) for better efficiency of training.
 
@@ -53,16 +54,18 @@ Following hyperparameters were used during sweeps:
 - regularization method (l1, l2 or none)
 - l cooefficient (value, used only when l1 or l2 regularization was used as it is control parameter for them)
 - method of weights initialization
-- activation function for hidden layers ()
-- activation function for output layers ()
+- activation function for hidden layers (due to limited time for sweeps and to have clearer comparision between runs it was decided that activation functions would be the same for each neuron in layer and furthermore all hidden layers would have the same activation function)
+- activation function for output layers (similarly like with previous parameter, each neuron in output layer would have the same activation function)
 - loss function
 
      
 ## Implementation idea
-xxx
+The main idea behind this implementation was to offer something not availible in big libraries (like PyTorch or TenserFlow) on top of standard capabilities expected from FFNN as achieving same efficiency with NumPy was not possible in this project time constraints. It was decided that this feature would be possibility of having different activation functions for neurons in the same layer. The implementation of it was done and tested (in Testing.ipynb). Unfortunately, it was not possible to use this capability in training tests due to lack of time. If such variable was used in testing it would introduce a lot of variation. With our limited capability of performing multiple training runs we would be unable to perform enough runs to reach any meaningfull conclusions. 
+For this reason tests were limited to standard networks capabilities (specific hyperparameters are described above).  
+
 ## Project files description:
-- Testing.ipynb:
-- TrainingExamples.ipynb:
+- Testing.ipynb: this is notebook in which basic implementations are tested (implementations themselves, not their effects on training etc.). Tests included testing if implementation works as intended and error handling of it (to inform in further steps of implementation and usage where problem occurs). Tested capabilities were objects initializations and forward pass for FNN, Layer and Neuron classes. Backward pass was only implemented and thus tested for FNN class. More compicated capabilities of project were tested in next files.
+- TrainingExamples.ipynb: this is notebook that showcases implementation of this project goal: implementation of Feed-forward Neural Network from scratch with usage of NumPy. 
 - SweepExample.ipynb:
 - FNN.py:
 - Layer.py:
