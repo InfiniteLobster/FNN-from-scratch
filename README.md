@@ -80,7 +80,7 @@ For this reason tests were limited to standard networks capabilities (specific h
 - SweepFunctions.py: this is the file in which all functions necessery for WandBi sweep are implemented.
 ## References
 [1] Wolberg, W., Mangasarian, O., Street, N., & Street, W. (1993). Breast Cancer Wisconsin (Diagnostic) [Dataset]. UCI Machine Learning Repository. https://doi.org/10.24432/C5DW2B. From: https://archive.ics.uci.edu/dataset/17/breast+cancer+wisconsin+diagnostic  
-[2] LeCun, Yann; Cortez, Corinna; Burges, Christopher C.J. "The MNIST Handwritten Digit Database". Used by Keras.  
+[2] LeCun, Yann; Cortez, Corinna; Burges, Christopher C.J. "The MNIST Handwritten Digit Database", 1998. Used by Keras.  
 [3] Learning Multiple Layers of Features from Tiny Images, Alex Krizhevsky, Technical Report, Computer Science Department, University of Toronto, 2009. Used by Keras.  
 [4] Glorot X., Bengio Y., Understanding the difficulty of training deep feedforward neural networks, (2010) Journal of Machine Learning Research, 9, pp. 249 - 256,  
 [5]He K., Zhang X., Ren S., Sun J., Delving deep into rectifiers: Surpassing human-level performance on imagenet classification, (2015) Proceedings of the IEEE International Conference on Computer Vision, 2015 International Conference on Computer Vision, ICCV 2015, art. no. 7410480, pp. 1026 - 1034, DOI: 10.1109/ICCV.2015.123  
