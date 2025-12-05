@@ -1,9 +1,11 @@
-#
+#importing libraries needed for this file operation
 import numpy as np
 from InitFunctions import  *
 from SuppFunctions import  *
 from ErrorClasses import *
-#
+#this is .py file with Neuron class. It is supposed to simulate neuron of ANN. Its purpose of existence is of further analysis of ANN(or rathe rlayer of it). It support this goal by decomposition
+
+
 class Neuron:
     #instance attributes
     #self.weight_vector - this variable holds vector representing the weight values of neuron. It is represented by 2d array with one row (to represent neuron as part of 1 neuron layer), so by row vector. The 0th index is assumed to represent bias.

@@ -1,16 +1,16 @@
+#importing libraries needed for this file operation
 #general libraries
 import numpy as np
-import copy
 import wandb
-import keras
+import keras#only used for downloading/loading dataset
 #project code
 from FNN import FNN
-from gradient_descent import *
+from OptimizersFunctions import *
 from ActivFunctions import  *
 from LossFunctions import *
 from SuppFunctions import *
 from TestingFunctions import *
-
+#this is .py file with all functions needed to perform WandBi sweep
 
 #this is function that selects Loss function derivative based on string name of loss functions
 def getLossDer(name):

@@ -1,6 +1,6 @@
+#importing libraries needed for this file operation
 import numpy as np
 import matplotlib.pyplot as plt
-
 #this is .py file with model testing functions 
 
 
@@ -49,13 +49,19 @@ def getAccuracyBin(true_positive,true_negative,false_positive,false_negative):
 #this function calculates precision of model results (based on confusion matrix results) for binary classification
 def getPrecisionBin(true_positive,false_positive):
     #calculating precision (precision is ratio of true positive predictions out of all positive predicitions)
-    precision = (true_positive) / (true_positive + false_positive) 
+    if((true_positive > 0) | (false_positive > 0)):#if both true_positive and false_positive are zeros than this calculation makes no sense 0/0
+        precision = (true_positive) / (true_positive + false_positive) 
+    else:#in case 0/0, precision is just 0
+        precision = 0
     #returning results
     return precision
 ##this function calculates recall of model results (based on confusion matrix results) for binary classification
 def getRecallBin(true_positive,false_negative):
     #calculating recal (precision is ratio of true positives out of prediciton that are positve in ground truth)
-    recall = (true_positive) / (true_positive + false_negative) 
+    if((true_positive > 0) | (false_negative > 0)):
+        recall = (true_positive) / (true_positive + false_negative) #if both true_positive and false_negative are zeros than this calculation makes no sense 0/0
+    else:#in case 0/0, precision is just 0
+        recall
     #returning results
     return recall
 #this function gets accuracy of multi class model
@@ -78,9 +84,7 @@ def getAccuracy(ground_truth,predictions):
     #returning results
     return accuracy
 #this function calculates confusion matrix elements for multi-class classification 
-def getConfMatCompMulti(ground_truth,predictions):
-    #getting number of classes to know dimesnions of confusion matrix to create
-    num_classes = predictions.shape[0]
+def getConfMatCompMulti(ground_truth,predictions, num_classes):
     #creating confusion matrix variable for pre-allocation
     confusion_matrix = np.zeros((num_classes, num_classes), dtype=int)
     #iterating through results to add numbers at proper places (to compare prediction and true value)
@@ -90,7 +94,7 @@ def getConfMatCompMulti(ground_truth,predictions):
     #returning confusion matrix (np array)
     return confusion_matrix
 #this function plots confusion matrix for multi-class classification
-def plot_confusion_matrix(confusion_matrix, class_names=None, title="Confusion Matrix"):
+def plotConfMatMulti(confusion_matrix, class_names=None, title="Confusion Matrix"):
     #getting shape of confusion matrix(based on numbers of classes) to know how plot should be created
     num_classes = confusion_matrix.shape[0]
     #in case when class names are not given, number labels are used (based on index)

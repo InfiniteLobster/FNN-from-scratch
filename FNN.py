@@ -1,10 +1,11 @@
+#importing libraries needed for this file operation
 import numpy as np
 from Layer import *
 from InitFunctions import  *
 from SuppFunctions import  *
 from ErrorClasses import *
-from ActivFunctions import softmax, softmax_vec
-
+from ActivFunctions import *
+#this is .py file with feed forward neural network class (shortened to forward neural network(FNN)) of our implementation. Basically all project work is based on working with objects of this class
 
 class FNN:
 #instance attributes

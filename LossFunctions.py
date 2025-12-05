@@ -1,3 +1,4 @@
+#importing libraries needed for this file operation
 import numpy as np
 #this is .py file with loss functions and their derivatives
 
