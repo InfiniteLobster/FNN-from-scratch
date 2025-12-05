@@ -65,19 +65,19 @@ For this reason tests were limited to standard networks capabilities (specific h
 
 ## Project files description:
 - Testing.ipynb: this is notebook in which basic implementations are tested (implementations themselves, not their effects on training etc.). Tests included testing if implementation works as intended and error handling of it (to inform in further steps of implementation and usage where problem occurs). Tested capabilities were objects initializations and forward pass for FNN, Layer and Neuron classes. Backward pass was only implemented and thus tested for FNN class. More compicated capabilities of project were tested in next files.
-- TrainingExamples.ipynb: this is notebook that showcases implementation of this project goal: implementation of Feed-forward Neural Network from scratch with usage of NumPy. 
-- SweepExample.ipynb:
-- FNN.py:
-- Layer.py:
-- Neuron.py:
-- InitFunctions.py:
-- ActivFunctions.py:
-- LossFunctions.py:
-- ErrorClasses.py:
-- OptimizersFunctions.py:
-- TestingFunctions.py:
-- SuppFunctions.py:
-- SweepFunctions.py:
+- **TrainingExamples.ipynb**: this is notebook that showcases implementation of this project goal -> implementation of Feed-forward Neural Network from scratch with usage of NumPy. Whole training cycles are created on earlier mentioned datsets for both regularization and classification (binary and multi) tasks. They show that implementationw works as expected (trains to solve problems), i.e. is succesfull in reaching goal when expected and fails also when expected. This is basically a notebook to show how to use implemented methods and of course that they work.
+- SweepExample.ipynb: this notebook shows how to use created FNN system with WandBi. Most of the code behind it is implemented in SweepFunctions.py.
+- FNN.py: this is file with the code of FNN class. This is basis on which this whole project works. Objects of this class represent FFNN models. Initialization, forward and backward pass are implemented in this file.
+- Layer.py: this is file with the code of Layer class. Objects of this class represent single layer (possible multi neuron) network. It covers initialization and forward pass. Backward pass is not built-in in it as there is only one layer.
+- Neuron.py: this is file with the code of Neuron class. Objects of this class represent single layer, single neuron network. It covers initialization and forward pass. Backward pass is not built-in in it as there is only one layer.
+- InitFunctions.py: this is file in which different initialization methods are implemented. Handling of them is covered in class files where they are used.
+- ActivFunctions.py: this is file in which different activation functions and their derivatives are implemented. Handling of them is covered in class files where they are used.
+- LossFunctions.py: this is file in which different loss functions and their derivatives are implemented. Handling of them is covered in class files where they are used.
+- ErrorClasses.py: this is file in which different Error functions are implemented. Handling of them is covered in class files where they are used. Their implementation is fully composed on proper messaage sending.
+- OptimizersFunctions.py: this is file in which traning loops with different optimizers are implemented.
+- TestingFunctions.py: this is file in which different methods of model evaluation are implemented. They are used in TrainingExamples.ipynb or in SweepFunctions.py for model evaluation.
+- SuppFunctions.py: this is file in which all functions that didn't fit in any sepcific category are implemented. 
+- SweepFunctions.py: this is file in which all functions necessery for WandBi sweep are implemented.
 ## References
 [1] Wolberg, W., Mangasarian, O., Street, N., & Street, W. (1993). Breast Cancer Wisconsin (Diagnostic) [Dataset]. UCI Machine Learning Repository. https://doi.org/10.24432/C5DW2B. From: https://archive.ics.uci.edu/dataset/17/breast+cancer+wisconsin+diagnostic  
 [2] LeCun, Yann; Cortez, Corinna; Burges, Christopher C.J. "The MNIST Handwritten Digit Database". Used by Keras.  
